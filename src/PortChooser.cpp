@@ -5,8 +5,6 @@
 #include <QSerialPort>
 #include <QtDebug>
 
-#include "Bad.h"
-
 const QString LOCATION_LABEL = "Location: ";
 const QString MFG_LABEL = "Manufacturer: ";
 

@@ -3,6 +3,12 @@
 
 #include <QMessageBox>
 #include <QtDebug>
+#include <QDir>
+#include <QString>
+#include <QStringList>
+#include <QPluginLoader>
+
+#include "DataFrameFactoryInterface.h"
 
 #include "PortChooser.h"
 
@@ -26,6 +32,10 @@ TrafficView::TrafficView(QWidget *parent) :
            this, &TrafficView::showAbout);
    connect(ui->actionOpen_Serial_Port, &QAction::triggered,
            this, &TrafficView::openSerialPort);
+   connect(ui->theProtocol, &QComboBox::currentTextChanged,
+           this, &TrafficView::selectProtocol);
+
+   loadPlugins();
 }
 
 TrafficView::~TrafficView()
@@ -45,8 +55,8 @@ void TrafficView::showAbout()
    QMessageBox::about(this,
                             "About PAHSDA",
                             "PAHSDA\n"
-                            "Protocol Analysis Highlighting Structured Data for Analysis\n"
-                            "Version 1.0");
+                            "Protocol Analyzer Highlighting Structured Data for Analysis\n"
+                            "Version 0.1");
 }
 
 void TrafficView::openSerialPort()
@@ -62,10 +72,7 @@ void TrafficView::openSerialPort()
    }
 
    PortChooser pc(this);
-   qDebug() << "About to show it";
    pc.show();
-
-   qDebug() << "About to exec it";
    pc.exec();
 
    qDebug() << "Port chooser complete";
@@ -79,4 +86,81 @@ void TrafficView::openSerialPort()
    }
 
    qDebug() << "Lets connect things up to our new io device!";
+}
+
+void TrafficView::selectProtocol(QString protocol)
+{
+   if (!theDataFrameFactories.contains(protocol))
+   {
+      QMessageBox::warning(this, "Invalid protocol selected", "Please pick a different protocol");
+      clearFrames();
+      theCurrentProtocol = nullptr;
+      return;
+   }
+
+   // If the protocol hasn't really changed, just exit and do nothing
+   if (theCurrentProtocol == theDataFrameFactories[protocol])
+   {
+      qDebug() << "Selected the same protocol that was already loaded";
+      return;
+   }
+
+   // New protocol selected
+   clearFrames();
+
+   theCurrentProtocol = theDataFrameFactories[protocol];
+
+   // Reconnect signals appropriately to route data
+
+   qDebug() << theCurrentProtocol->statusToString();
+}
+
+void TrafficView::clearFrames()
+{
+   qDebug() << "Clear frames called - not implemented";
+}
+
+void TrafficView::loadPlugins()
+{
+   QDir directory("plugins");
+   QStringList fileListing = directory.entryList(QDir::NoDotAndDotDot | QDir::Files);
+   qDebug() << fileListing.join(" ");
+
+   QStringList pluginListing;
+   foreach(QString singleFile, fileListing)
+   {
+      if (singleFile.endsWith("plugin.so"))
+      {
+         qDebug() << "Has plugin name: " + singleFile;
+
+         singleFile.prepend(QDir::separator());
+         singleFile.prepend("plugins");
+         pluginListing.append(singleFile);
+      }
+   }
+
+   foreach(QString pluginFile, pluginListing)
+   {
+      QPluginLoader pluginLoader(pluginFile);
+
+      QObject* po = pluginLoader.instance();
+
+      DataFrameFactoryInterface* factory = qobject_cast<DataFrameFactoryInterface*>(po);
+
+      if (factory == nullptr)
+      {
+         qDebug() << "Failed to load the plugin";
+         qDebug() << pluginLoader.errorString();
+
+      }
+      else
+      {
+         qDebug() << "Successfully loaded the plugin";
+
+         theDataFrameFactories.insert(factory->protocolName(), factory);
+
+         ui->theProtocol->addItem(factory->protocolName());
+      }
+   }
+
 }

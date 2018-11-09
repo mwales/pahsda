@@ -1,4 +1,4 @@
-#include "Bad.h"
+#include "TrafficView.h"
 #include <QApplication>
 
 int main(int argc, char *argv[])

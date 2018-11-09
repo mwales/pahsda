@@ -2,6 +2,9 @@
 #define TRAFFICVIEW_H
 
 #include <QMainWindow>
+#include <QMap>
+
+class DataFrameFactoryInterface;
 
 namespace Ui {
 class TrafficView;
@@ -29,10 +32,23 @@ private slots:
 
    void openSerialPort();
 
+   void selectProtocol(QString protocol);
+
+   void clearFrames();
+
 private:
+
+   void loadPlugins();
+
    Ui::TrafficView *ui;
 
    QIODevice* theInterface;
+
+   QMap<QString, DataFrameFactoryInterface*> theDataFrameFactories;
+
+   DataFrameFactoryInterface* theCurrentProtocol;
+
+
 };
 
 #endif // TRAFFICVIEW_H
