@@ -7,6 +7,7 @@
 #include <QString>
 #include <QStringList>
 #include <QPluginLoader>
+#include <QtSerialPort>
 
 #include "DataFrameFactoryInterface.h"
 
@@ -86,6 +87,25 @@ void TrafficView::openSerialPort()
    }
 
    qDebug() << "Lets connect things up to our new io device!";
+
+   if (theCurrentProtocol == nullptr)
+   {
+      QMessageBox::warning(this, "No protocol selected",
+                           "You must select a protocol first before opening up a data connection");
+      return;
+   }
+
+   // Connect data received to the protocol's pushMsgBytes method
+   theInterface->setParent(this);
+   connect(theInterface, &QSerialPort::readyRead,
+           this, &TrafficView::ioReadReady);
+
+   theInterface->open(QIODevice::ReadWrite);
+
+   if (theInterface->bytesAvailable())
+   {
+      theCurrentProtocol->pushMsgBytes(theInterface->readAll());
+   }
 }
 
 void TrafficView::selectProtocol(QString protocol)
@@ -118,6 +138,20 @@ void TrafficView::selectProtocol(QString protocol)
 void TrafficView::clearFrames()
 {
    qDebug() << "Clear frames called - not implemented";
+}
+
+void TrafficView::ioReadReady()
+{
+   qDebug() << __PRETTY_FUNCTION__;
+
+   if (theCurrentProtocol == nullptr)
+   {
+      qWarning() << "Received data, but no protocol configured to receive it";
+   }
+   else
+   {
+      theCurrentProtocol->pushMsgBytes(theInterface->readAll());
+   }
 }
 
 void TrafficView::loadPlugins()

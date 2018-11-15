@@ -36,6 +36,8 @@ private slots:
 
    void clearFrames();
 
+   void ioReadReady();
+
 private:
 
    void loadPlugins();
