@@ -3,6 +3,8 @@
 
 #include <QMainWindow>
 #include <QMap>
+#include <QTcpServer>
+#include <QTcpSocket>
 
 class DataFrameFactoryInterface;
 
@@ -38,6 +40,14 @@ private slots:
 
    void ioReadReady();
 
+   void acceptInjectorConnection();
+
+   void injectorDataReady();
+
+   void injectorClientDisconnected();
+
+   void injectorClientError(QAbstractSocket::SocketError error);
+
 private:
 
    void loadPlugins();
@@ -49,6 +59,11 @@ private:
    QMap<QString, DataFrameFactoryInterface*> theDataFrameFactories;
 
    DataFrameFactoryInterface* theCurrentProtocol;
+
+   QTcpServer theInjectorService;
+
+   QTcpSocket* theInjectorClient;
+
 
 
 };

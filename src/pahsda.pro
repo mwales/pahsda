@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui widgets serialport
+QT       += core gui widgets serialport network
 
 TARGET = pahsda
 

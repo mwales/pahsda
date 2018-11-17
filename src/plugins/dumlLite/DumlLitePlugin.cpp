@@ -59,6 +59,7 @@ void DumlLiteFrameFactory::pushMsgBytes(QByteArray msgData)
    theDataBytes.append(msgData);
 
    dlDebug() << __PRETTY_FUNCTION__ << " received " << msgData.length() << "bytes of data";
+   dlDebug() << "WHOLE RAW: " << msgData.toHex(' ');
 
    findFrames();
 
@@ -115,7 +116,7 @@ bool DumlLiteFrameFactory::findNextFrame()
    }
 
    int dumlFrameLength = ( theDataBytes[2] << 8) | theDataBytes[1];
-   dumlFrameLength &= 0x3f;
+   dumlFrameLength &= 0x03ff;
 
    if (dumlFrameLength > theDataBytes.length())
    {

@@ -8,6 +8,8 @@
 #include <QStringList>
 #include <QPluginLoader>
 #include <QtSerialPort>
+#include <QAbstractSocket>
+
 
 #include "DataFrameFactoryInterface.h"
 
@@ -16,7 +18,9 @@
 TrafficView::TrafficView(QWidget *parent) :
    QMainWindow(parent),
    ui(new Ui::TrafficView),
-   theInterface(nullptr)
+   theInterface(nullptr),
+   theInjectorService(this),
+   theInjectorClient(nullptr)
 {
    ui->setupUi(this);
 
@@ -37,6 +41,22 @@ TrafficView::TrafficView(QWidget *parent) :
            this, &TrafficView::selectProtocol);
 
    loadPlugins();
+
+   // Start injector service
+   theInjectorService.setMaxPendingConnections(1);
+   if (!theInjectorService.listen(QHostAddress::Any, 30003))
+   {
+      qDebug() << "Error listening on port 30003: " << theInjectorService.errorString();
+   }
+   else
+   {
+      qDebug() << "Listening on port " << theInjectorService.serverPort();
+
+      connect(&theInjectorService, SIGNAL(newConnection()),
+              this, SLOT(acceptInjectorConnection()));
+   }
+
+
 }
 
 TrafficView::~TrafficView()
@@ -152,6 +172,81 @@ void TrafficView::ioReadReady()
    {
       theCurrentProtocol->pushMsgBytes(theInterface->readAll());
    }
+}
+
+void TrafficView::acceptInjectorConnection()
+{
+   if (theInjectorClient != nullptr)
+   {
+      qDebug() << "Dropping connection with existing injector client";
+      theInjectorClient->close();
+      theInjectorClient->deleteLater();
+      theInjectorClient = nullptr;
+   }
+
+   if (!theInjectorService.hasPendingConnections())
+   {
+      qWarning() << "Received a signal that connection was ready, but no connections pending";
+      qWarning() << " errorString = " << theInjectorService.errorString();
+      return;
+   }
+
+   theInjectorClient = theInjectorService.nextPendingConnection();
+
+   if (theInjectorClient == nullptr)
+   {
+      qWarning() << "nextPendingConnection returned a bad socket pointer";
+      return;
+   }
+
+   connect(theInjectorClient, &QIODevice::readyRead,
+           this, &TrafficView::injectorDataReady);
+   connect(theInjectorClient, &QAbstractSocket::disconnected,
+           this, &TrafficView::injectorClientDisconnected);
+   connect(theInjectorClient, SIGNAL(error(QAbstractSocket::SocketError)),
+           this, SLOT(injectorClientError(QAbstractSocket::SocketError)));
+
+   qDebug() << "Accepted new connection from " << theInjectorClient->peerName();
+}
+
+void TrafficView::injectorDataReady()
+{
+   qDebug() << "Injector data ready";
+
+   if (theInterface == nullptr)
+   {
+      qWarning() << "Injector trying to inject data, but no interface up yet";
+      return;
+   }
+
+   QByteArray injectionData = theInjectorClient->readAll();
+
+   int bytesWritten = theInterface->write(injectionData);
+   if (bytesWritten == injectionData.length())
+   {
+      qDebug() << "Injecting " << bytesWritten << " bytes";
+      qDebug() << " INJDATA: " << injectionData.toHex(' ');
+   }
+   else
+   {
+      qDebug() << "Failed to inject data.  Received " << injectionData.length()
+               << " bytes to inject, wrote " << bytesWritten << " bytes";
+   }
+
+}
+
+void TrafficView::injectorClientDisconnected()
+{
+   qDebug() << "Injector client disconnected";
+
+   theInjectorClient->close();
+   theInjectorClient->deleteLater();
+   theInjectorClient = nullptr;
+}
+
+void TrafficView::injectorClientError(QAbstractSocket::SocketError error)
+{
+   qWarning() << "Injector client had an error" << error;
 }
 
 void TrafficView::loadPlugins()
