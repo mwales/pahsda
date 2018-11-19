@@ -10,6 +10,7 @@
 #include <QtSerialPort>
 #include <QAbstractSocket>
 
+/// @todo Make custom debug level for this class
 
 #include "DataFrameFactoryInterface.h"
 
@@ -39,6 +40,9 @@ TrafficView::TrafficView(QWidget *parent) :
            this, &TrafficView::openSerialPort);
    connect(ui->theProtocol, &QComboBox::currentTextChanged,
            this, &TrafficView::selectProtocol);
+   connect(ui->theCloseButton, &QPushButton::clicked,
+           this, &TrafficView::closeInterface);
+
 
    loadPlugins();
 
@@ -128,6 +132,21 @@ void TrafficView::openSerialPort()
    }
 }
 
+void TrafficView::closeInterface()
+{
+   qDebug() << "Close button pressed";
+
+   if (theInterface == nullptr)
+   {
+      // Do nothing
+      return;
+   }
+
+   theInterface->close();
+   theInterface->deleteLater();
+   theInterface = nullptr;
+}
+
 void TrafficView::selectProtocol(QString protocol)
 {
    if (!theDataFrameFactories.contains(protocol))
@@ -167,10 +186,109 @@ void TrafficView::ioReadReady()
    if (theCurrentProtocol == nullptr)
    {
       qWarning() << "Received data, but no protocol configured to receive it";
+      return;
    }
-   else
+
+   theCurrentProtocol->pushMsgBytes(theInterface->readAll());
+
+   while(theCurrentProtocol->isFrameReady())
    {
-      theCurrentProtocol->pushMsgBytes(theInterface->readAll());
+      addFrame(theCurrentProtocol->getNextFrame());
+   }
+}
+
+void TrafficView::addFrame(DataFrame* frame)
+{
+   // Special case, is there no frames so far?
+   if (theFrames.empty())
+   {
+      qDebug() << "Adding first frame, formatting the headers";
+      // No frames have ever been received, use this frame to format the table!
+
+      // Add the header
+      QList<int> fields = frame->getFieldIndexes();
+      ui->theFrameView->setColumnCount(fields.length());
+
+      QStringList headerStrings;
+      foreach(int fieldIndex, fields)
+      {
+         headerStrings.append(frame->getFieldAbbrev(fieldIndex));
+      }
+      ui->theFrameView->setHorizontalHeaderLabels(headerStrings);
+
+      theFrames.push_back(frame);
+
+      displayFrame(frame, 0);
+
+      return;
+   }
+
+   // Find out where the new frame goes in our ordered list
+   int row = 0;
+   for(auto oldFrameIter = theFrames.begin(); oldFrameIter != theFrames.end(); oldFrameIter++)
+   {
+      if (*frame > **oldFrameIter)
+      {
+         // Not equal, keep iterating!
+         row++;
+         continue;
+      }
+
+      if (*frame == **oldFrameIter)
+      {
+         // This is the same message type, lets just update the old frame
+         qDebug() << "Pretend we update the old frame here!";
+
+         displayFrame(frame, row);
+
+         oldFrameIter = theFrames.erase(oldFrameIter);
+         theFrames.insert(oldFrameIter, frame);
+         return;
+      }
+
+      qDebug() << "Inserting frame in the middle at row " << row;
+      // If we got here, we need to insert the new frame here
+      theFrames.insert(oldFrameIter, frame);
+      ui->theFrameView->insertRow(row);
+      displayFrame(frame, row);
+      return;
+   }
+
+   // We must be the last item to be added
+   qDebug() << "Inserting as the new last frame";
+   theFrames.push_back(frame);
+   displayFrame(frame, theFrames.count() - 1);
+}
+
+void TrafficView::displayFrame(DataFrame* frame, int row)
+{
+   if (row >= ui->theFrameView->rowCount())
+   {
+      ui->theFrameView->setRowCount(row + 1);
+   }
+
+   qDebug() << "Working on row " << row;
+
+   QList<int> fields = frame->getFieldIndexes();
+   int col = 0;
+   foreach(int fieldIndex, fields)
+   {
+      qDebug() << "Item(row=" << row << ", col=" << col << ") = " << frame->getFieldValueString(fieldIndex);
+
+      QTableWidgetItem* item = ui->theFrameView->item(row, col);
+      if (item == nullptr)
+      {
+         // No item had ever been set at that location, make a new item
+         item = new QTableWidgetItem(frame->getFieldValueString(fieldIndex));
+
+         ui->theFrameView->setItem(row, col, item);
+      }
+      else
+      {
+         // There was already an item at that location, update it
+         item->setText(frame->getFieldValueString(fieldIndex));
+      }
+      col++;
    }
 }
 

@@ -5,6 +5,9 @@
 #include <QMap>
 #include <QTcpServer>
 #include <QTcpSocket>
+#include <QLinkedList>
+
+#include "DataFrame.h"
 
 class DataFrameFactoryInterface;
 
@@ -15,8 +18,6 @@ class TrafficView;
 /**
  * Main GUI.  Hope to show the messages as they come in.
  *
- * @todo Connect and receive incoming data
- * @todo Send incoming data the DataFramingFactory
  * @todo Display framed data using the DataFrameDisplay class
  * @todo Log the data?
  */
@@ -33,6 +34,8 @@ private slots:
    void showAbout();
 
    void openSerialPort();
+
+   void closeInterface();
 
    void selectProtocol(QString protocol);
 
@@ -52,6 +55,10 @@ private:
 
    void loadPlugins();
 
+   void addFrame(DataFrame* frame);
+
+   void displayFrame(DataFrame* frame, int row);
+
    Ui::TrafficView *ui;
 
    QIODevice* theInterface;
@@ -63,6 +70,10 @@ private:
    QTcpServer theInjectorService;
 
    QTcpSocket* theInjectorClient;
+
+   /// @todo Is the inserting and replacing code I have using this container really working OK,
+   /// consider just converting to a QVector for simplicity
+   QLinkedList<DataFrame*> theFrames;
 
 
 

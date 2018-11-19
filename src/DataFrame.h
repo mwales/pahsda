@@ -24,6 +24,8 @@ public:
 
    QString getFieldName(int field);
 
+   QString getFieldAbbrev(int field);
+
    QByteArray getFieldRawValue(int fieldIndex);
 
    QString getFieldValueString(int fieldIndex);
@@ -32,7 +34,7 @@ public:
 
    QDateTime getTimestamp();
 
-   bool addField(int fieldIndex, QString fieldName);
+   bool addField(int fieldIndex, QString fieldName, QString abbrev);
 
    bool addValue(int fieldIndex, QByteArray rawBytes);
 
@@ -49,6 +51,8 @@ public:
 protected:
 
    QMap<int, QString> theFields;
+
+   QMap<int, QString> theAbbreviations;
 
    QDateTime theRxTime;
 

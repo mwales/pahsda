@@ -41,6 +41,18 @@ QString DataFrame::getFieldName(int fieldIndex)
    }
 }
 
+QString DataFrame::getFieldAbbrev(int field)
+{
+   if (theAbbreviations.contains(field))
+   {
+      return theAbbreviations[field];
+   }
+   else
+   {
+      return "";
+   }
+}
+
 QByteArray DataFrame::getFieldRawValue(int fieldIndex)
 {
    if (theValues.contains(fieldIndex))
@@ -77,7 +89,7 @@ QDateTime DataFrame::getTimestamp()
    return theRxTime;
 }
 
-bool DataFrame::addField(int fieldIndex, QString fieldName)
+bool DataFrame::addField(int fieldIndex, QString fieldName, QString abbrev)
 {
    if (theFields.contains(fieldIndex))
    {
@@ -87,6 +99,10 @@ bool DataFrame::addField(int fieldIndex, QString fieldName)
    }
 
     theFields.insert(fieldIndex, fieldName);
+
+    // We will assume that if we were OK to add the field, there isn't an existing abbreviation
+    theAbbreviations.insert(fieldIndex, abbrev);
+
     return true;
 }
 
@@ -120,6 +136,8 @@ void DataFrame::setSortingIndexes(QList<int> sortOrdering)
 
 bool DataFrame::operator<(const DataFrame& rhs) const
 {
+   dFrameDebug() << "DataFrame < DataFrame called";
+
    foreach(int sortingIndex, theSortingIndexes)
    {
 
@@ -170,6 +188,8 @@ bool DataFrame::operator<=(const DataFrame& rhs) const
 
 bool DataFrame::operator==(const DataFrame& rhs) const
 {
+   dFrameDebug() << "DataFrame == DataFrame called";
+
    foreach(int sortingIndex, theSortingIndexes)
    {
 
