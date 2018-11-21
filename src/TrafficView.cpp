@@ -15,6 +15,7 @@
 #include "DataFrameFactoryInterface.h"
 
 #include "PortChooser.h"
+#include "Helpers.h"
 
 TrafficView::TrafficView(QWidget *parent) :
    QMainWindow(parent),
@@ -349,7 +350,7 @@ void TrafficView::injectorDataReady()
    if (bytesWritten == injectionData.length())
    {
       qDebug() << "Injecting " << bytesWritten << " bytes";
-      qDebug() << " INJDATA: " << injectionData.toHex(' ');
+      qDebug() << " INJDATA: " << Helpers::qbyteToHexString(injectionData);
    }
    else
    {

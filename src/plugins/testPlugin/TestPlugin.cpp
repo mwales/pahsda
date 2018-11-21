@@ -18,6 +18,7 @@ TestPlugin::~TestPlugin()
 void TestPlugin::pushMsgBytes(QByteArray msgData)
 {
    qWarning() << __PRETTY_FUNCTION__ << " called, but no implementation!";
+   Q_UNUSED(msgData);
 }
 
 bool TestPlugin::isFrameReady()

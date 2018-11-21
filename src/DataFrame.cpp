@@ -2,6 +2,8 @@
 
 #include <QtDebug>
 
+#include "Helpers.h"
+
 // Uncomment to enable debugging of this class
 #define DATA_FRAME_DEBUG
 
@@ -70,7 +72,7 @@ QString DataFrame::getFieldValueString(int fieldIndex)
 {
    if (theValues.contains(fieldIndex))
    {
-      return theValues.value(fieldIndex).toHex(' ');
+      return Helpers::qbyteToHexString(theValues.value(fieldIndex));
    }
    else
    {
@@ -263,7 +265,7 @@ QString DataFrame::toString() const
       retVal += " = ";
       retVal += theFields.value(fieldIndex);
       retVal += " = ";
-      retVal += theValues.value(fieldIndex).toHex(' ');
+      retVal += Helpers::qbyteToHexString(theValues.value(fieldIndex));
       retVal += ", ";
    }
    return retVal;

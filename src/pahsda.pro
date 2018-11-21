@@ -26,14 +26,16 @@ SOURCES += \
         PortChooser.cpp \
     DataFrame.cpp \
     DataFrameDisplay.cpp \
-    TrafficView.cpp
+    TrafficView.cpp \
+    Helpers.cpp
 
 HEADERS += \
         PortChooser.h \
     DataFrame.h \
     DataFrameDisplay.h \
     DataFrameFactoryInterface.h \
-    TrafficView.h
+    TrafficView.h \
+    Helpers.h
 
 FORMS += \
         PortChooser.ui \
