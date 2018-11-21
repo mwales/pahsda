@@ -48,6 +48,8 @@ public:
    bool operator>=(const DataFrame& rhs) const;
    bool operator>(const DataFrame& rhs) const;
 
+   QString toString() const;
+
 protected:
 
    QMap<int, QString> theFields;

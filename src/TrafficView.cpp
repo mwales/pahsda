@@ -145,6 +145,8 @@ void TrafficView::closeInterface()
    theInterface->close();
    theInterface->deleteLater();
    theInterface = nullptr;
+
+   qDebug() << "Status of protocol:\n" << theCurrentProtocol->statusToString();
 }
 
 void TrafficView::selectProtocol(QString protocol)
@@ -195,6 +197,12 @@ void TrafficView::ioReadReady()
    {
       addFrame(theCurrentProtocol->getNextFrame());
    }
+
+   // qDebug() << "Going to dump the contents of all the frames:";
+   // foreach(DataFrame* df, theFrames)
+   // {
+   //    qDebug() << df->toString();
+   // }
 }
 
 void TrafficView::addFrame(DataFrame* frame)
@@ -267,13 +275,11 @@ void TrafficView::displayFrame(DataFrame* frame, int row)
       ui->theFrameView->setRowCount(row + 1);
    }
 
-   qDebug() << "Working on row " << row;
-
    QList<int> fields = frame->getFieldIndexes();
    int col = 0;
    foreach(int fieldIndex, fields)
    {
-      qDebug() << "Item(row=" << row << ", col=" << col << ") = " << frame->getFieldValueString(fieldIndex);
+      // qDebug() << "Item(row=" << row << ", col=" << col << ") = " << frame->getFieldValueString(fieldIndex);
 
       QTableWidgetItem* item = ui->theFrameView->item(row, col);
       if (item == nullptr)

@@ -16,7 +16,7 @@
 DataFrame::DataFrame():
    theRxTime(QDateTime::currentDateTime())
 {
-   dFrameDebug() << "Created a new data frame";
+   // dFrameDebug() << "Created a new data frame";
 }
 
 int DataFrame::getNumFields()
@@ -136,7 +136,9 @@ void DataFrame::setSortingIndexes(QList<int> sortOrdering)
 
 bool DataFrame::operator<(const DataFrame& rhs) const
 {
-   dFrameDebug() << "DataFrame < DataFrame called";
+   // dFrameDebug() << "DataFrame < DataFrame called";
+   // dFrameDebug() << "  LHS: " << toString();
+   // dFrameDebug() << "  RHS: " << rhs.toString();
 
    foreach(int sortingIndex, theSortingIndexes)
    {
@@ -167,12 +169,13 @@ bool DataFrame::operator<(const DataFrame& rhs) const
       {
          if (lhsBytes[i] != rhsBytes [i])
          {
+            // dFrameDebug() << "  " << (lhsBytes[i] < rhsBytes[i] ? "True" : "False");
             return lhsBytes[i] < rhsBytes[i];
          }
       }
    }
 
-   // We went though all the sorting indexes, and haven't found a differentce, they are equal
+   // We went though all the sorting indexes, and haven't found a difference, they are equal
    return false;
 }
 
@@ -188,11 +191,12 @@ bool DataFrame::operator<=(const DataFrame& rhs) const
 
 bool DataFrame::operator==(const DataFrame& rhs) const
 {
-   dFrameDebug() << "DataFrame == DataFrame called";
+   // dFrameDebug() << "DataFrame == DataFrame called";
+   // dFrameDebug() << "  LHS: " << toString();
+   // dFrameDebug() << "  RHS: " << rhs.toString();
 
    foreach(int sortingIndex, theSortingIndexes)
    {
-
       // Make sure that both frames have this index
       if ( !theFields.contains(sortingIndex) ||
            !rhs.theFields.contains(sortingIndex) )
@@ -211,7 +215,7 @@ bool DataFrame::operator==(const DataFrame& rhs) const
 
          if (numBytesToSort > rhsBytes.length())
          {
-            numBytesToSort  = rhsBytes.length();
+            numBytesToSort = rhsBytes.length();
          }
       }
 
@@ -246,4 +250,23 @@ bool DataFrame::operator>(const DataFrame& rhs) const
    }
 
    return !(*this < rhs);
+}
+
+QString DataFrame::toString() const
+{
+   QString retVal;
+   retVal += "Fields: ";
+   foreach(int fieldIndex, theFields.keys())
+   {
+      retVal += "  ";
+      retVal += QString::number(fieldIndex);
+      retVal += " = ";
+      retVal += theFields.value(fieldIndex);
+      retVal += " = ";
+      retVal += theValues.value(fieldIndex).toHex(' ');
+      retVal += ", ";
+   }
+   return retVal;
+
+
 }

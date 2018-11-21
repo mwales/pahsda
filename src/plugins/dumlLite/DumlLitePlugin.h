@@ -6,7 +6,6 @@
 
 #include "DataFrameFactoryInterface.h"
 #include "DumlFrame.h"
-
 /**
  * Plugin for PAHSDA
  *

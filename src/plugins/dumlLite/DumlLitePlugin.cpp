@@ -3,7 +3,7 @@
 #include <QtDebug>
 
 // Uncomment to enable debugging of this class
-#define DUML_LITE_FF_DEBUG
+// #define DUML_LITE_FF_DEBUG
 
 #ifdef DUML_LITE_FF_DEBUG
    #define dlDebug qDebug
@@ -59,7 +59,7 @@ void DumlLiteFrameFactory::pushMsgBytes(QByteArray msgData)
    theDataBytes.append(msgData);
 
    dlDebug() << __PRETTY_FUNCTION__ << " received " << msgData.length() << "bytes of data";
-   dlDebug() << "WHOLE RAW: " << msgData.toHex(' ');
+   // dlDebug() << "WHOLE RAW: " << msgData.toHex(' ');
 
    findFrames();
 
@@ -135,6 +135,8 @@ bool DumlLiteFrameFactory::findNextFrame()
 
    DumlFrame* df = new DumlFrame(framedData);
    theFrames.append(df);
+
+   theTotalBytesFramed += dumlFrameLength;
 
    return true;
 }
