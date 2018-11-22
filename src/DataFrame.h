@@ -52,8 +52,10 @@ public:
 
 protected:
 
+   /// @todo Used shared pointers for the following field so we don't waste time / memory
    QMap<int, QString> theFields;
 
+   /// @todo Used share pointer for the following field so we don't waste time / memory
    QMap<int, QString> theAbbreviations;
 
    QDateTime theRxTime;

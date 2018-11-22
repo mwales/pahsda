@@ -6,6 +6,7 @@
 #include <QTcpServer>
 #include <QTcpSocket>
 #include <QLinkedList>
+#include <QTimer>
 
 #include "DataFrame.h"
 
@@ -51,6 +52,8 @@ private slots:
 
    void injectorClientError(QAbstractSocket::SocketError error);
 
+   void statusUpdateTimerFired();
+
 private:
 
    void loadPlugins();
@@ -75,7 +78,7 @@ private:
    /// consider just converting to a QVector for simplicity
    QLinkedList<DataFrame*> theFrames;
 
-
+   QTimer theUpdateStatusTimer;
 
 };
 

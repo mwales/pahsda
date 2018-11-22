@@ -35,6 +35,8 @@ TrafficView::TrafficView(QWidget *parent) :
    text += "what's up <u>00</u> in <b class='changed'>FF!</b>";
    ui->label->setText(text);
 
+   theUpdateStatusTimer.setInterval(1000);
+
    connect(ui->actionAbout, &QAction::triggered,
            this, &TrafficView::showAbout);
    connect(ui->actionOpen_Serial_Port, &QAction::triggered,
@@ -43,7 +45,8 @@ TrafficView::TrafficView(QWidget *parent) :
            this, &TrafficView::selectProtocol);
    connect(ui->theCloseButton, &QPushButton::clicked,
            this, &TrafficView::closeInterface);
-
+   connect(&theUpdateStatusTimer, &QTimer::timeout,
+           this, &TrafficView::statusUpdateTimerFired);
 
    loadPlugins();
 
@@ -61,7 +64,7 @@ TrafficView::TrafficView(QWidget *parent) :
               this, SLOT(acceptInjectorConnection()));
    }
 
-
+   theUpdateStatusTimer.start();
 }
 
 TrafficView::~TrafficView()
@@ -206,6 +209,10 @@ void TrafficView::ioReadReady()
    // }
 }
 
+/**
+ * This function needs to take ownership of all frames that it receives.  If it doesn't want them
+ * it needs to delete them
+ */
 void TrafficView::addFrame(DataFrame* frame)
 {
    // Special case, is there no frames so far?
@@ -227,6 +234,7 @@ void TrafficView::addFrame(DataFrame* frame)
 
       theFrames.push_back(frame);
 
+      // Frames that we keep will be deleted during cleanup of the GUI
       displayFrame(frame, 0);
 
       return;
@@ -372,6 +380,14 @@ void TrafficView::injectorClientDisconnected()
 void TrafficView::injectorClientError(QAbstractSocket::SocketError error)
 {
    qWarning() << "Injector client had an error" << error;
+}
+
+void TrafficView::statusUpdateTimerFired()
+{
+   if (theCurrentProtocol != nullptr)
+   {
+      ui->statusBar->showMessage(theCurrentProtocol->statusToString(), 1000);
+   }
 }
 
 void TrafficView::loadPlugins()
