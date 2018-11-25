@@ -21,13 +21,16 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 CONFIG += c++11
 
+QMAKE_LFLAGS += -rdynamic
+
 SOURCES += \
         main.cpp \
         PortChooser.cpp \
     DataFrame.cpp \
     DataFrameDisplay.cpp \
     TrafficView.cpp \
-    Helpers.cpp
+    Helpers.cpp \
+    FrameDataField.cpp
 
 HEADERS += \
         PortChooser.h \
@@ -35,7 +38,8 @@ HEADERS += \
     DataFrameDisplay.h \
     DataFrameFactoryInterface.h \
     TrafficView.h \
-    Helpers.h
+    Helpers.h \
+    FrameDataField.h
 
 FORMS += \
         PortChooser.ui \

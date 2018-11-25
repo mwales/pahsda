@@ -60,7 +60,7 @@ private:
 
    void addFrame(DataFrame* frame);
 
-   void displayFrame(DataFrame* frame, int row);
+   void addFrameToTable(DataFrame* frame, int row);
 
    Ui::TrafficView *ui;
 

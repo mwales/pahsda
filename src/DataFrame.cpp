@@ -3,6 +3,7 @@
 #include <QtDebug>
 
 #include "Helpers.h"
+#include "FrameDataField.h"
 
 // Uncomment to enable debugging of this class
 #define DATA_FRAME_DEBUG
@@ -21,17 +22,25 @@ DataFrame::DataFrame():
    // dFrameDebug() << "Created a new data frame";
 }
 
+DataFrame::~DataFrame()
+{
+   foreach(FrameDataField* fd, theValues)
+   {
+      delete fd;
+   }
+}
+
 int DataFrame::getNumFields()
 {
    return theFields.size();
 }
 
-QList<int> DataFrame::getFieldIndexes()
+QList<int> DataFrame::getFieldIndexes() const
 {
    return theFields.keys();
 }
 
-QString DataFrame::getFieldName(int fieldIndex)
+QString DataFrame::getFieldName(int fieldIndex) const
 {
    if (theFields.contains(fieldIndex))
    {
@@ -43,7 +52,7 @@ QString DataFrame::getFieldName(int fieldIndex)
    }
 }
 
-QString DataFrame::getFieldAbbrev(int field)
+QString DataFrame::getFieldAbbrev(int field) const
 {
    if (theAbbreviations.contains(field))
    {
@@ -55,11 +64,11 @@ QString DataFrame::getFieldAbbrev(int field)
    }
 }
 
-QByteArray DataFrame::getFieldRawValue(int fieldIndex)
+QByteArray DataFrame::getFieldRawValue(int fieldIndex) const
 {
    if (theValues.contains(fieldIndex))
    {
-      return theValues.value(fieldIndex);
+      return theValues.value(fieldIndex)->getFieldRawValue();
    }
    else
    {
@@ -68,11 +77,11 @@ QByteArray DataFrame::getFieldRawValue(int fieldIndex)
    }
 }
 
-QString DataFrame::getFieldValueString(int fieldIndex)
+QString DataFrame::getFieldValueString(int fieldIndex) const
 {
    if (theValues.contains(fieldIndex))
    {
-      return Helpers::qbyteToHexString(theValues.value(fieldIndex));
+      return theValues.value(fieldIndex)->getFieldValueString();
    }
    else
    {
@@ -81,12 +90,20 @@ QString DataFrame::getFieldValueString(int fieldIndex)
    }
 }
 
-QString DataFrame::getFieldValueRichString(int fieldIndex)
+QString DataFrame::getFieldValueRichString(int fieldIndex) const
 {
-   return getFieldValueString(fieldIndex);
+   if (theValues.contains(fieldIndex))
+   {
+      return theValues.value(fieldIndex)->getFieldValueRichString();
+   }
+   else
+   {
+      dFrameWarning() << "Asked for rich data string from invalid fieldIndex = " << fieldIndex;
+      return "";
+   }
 }
 
-QDateTime DataFrame::getTimestamp()
+QDateTime DataFrame::getTimestamp() const
 {
    return theRxTime;
 }
@@ -108,11 +125,24 @@ bool DataFrame::addField(int fieldIndex, QString fieldName, QString abbrev)
     return true;
 }
 
-bool DataFrame::addValue(int fieldIndex, QByteArray rawBytes)
+bool DataFrame::updateFieldValue(int fieldIndex, QByteArray rawBytes)
 {
    if (theFields.contains(fieldIndex))
    {
-      theValues[fieldIndex] = rawBytes;
+      // Is this the first time this field's value has been set?
+      if (!theValues.contains(fieldIndex))
+      {
+         FrameDataField* fdf = new FrameDataField();
+         fdf->setValue(rawBytes);
+
+         theValues[fieldIndex] = fdf;
+      }
+      else
+      {
+         // A FrameDataField object already exists, just update it
+         theValues.value(fieldIndex)->updateValue(rawBytes);
+      }
+
       return true;
    }
    else
@@ -136,6 +166,14 @@ void DataFrame::setSortingIndexes(QList<int> sortOrdering)
    theSortingIndexes = sortOrdering;
 }
 
+void DataFrame::updateFrame(DataFrame const & df)
+{
+   foreach(int fieldIndex, theValues.keys())
+   {
+      theValues.value(fieldIndex)->updateValue(df.getFieldRawValue(fieldIndex));
+   }
+}
+
 bool DataFrame::operator<(const DataFrame& rhs) const
 {
    // dFrameDebug() << "DataFrame < DataFrame called";
@@ -152,8 +190,8 @@ bool DataFrame::operator<(const DataFrame& rhs) const
          qFatal("Comparing two frames that don't have the sorting index");
       }
 
-      QByteArray lhsBytes = theValues.value(sortingIndex);
-      QByteArray rhsBytes = rhs.theValues.value(sortingIndex);
+      QByteArray lhsBytes = theValues.value(sortingIndex)->getFieldRawValue();
+      QByteArray rhsBytes = rhs.theValues.value(sortingIndex)->getFieldRawValue();
 
       int numBytesToSort = lhsBytes.length();
       if (numBytesToSort != rhsBytes.length())
@@ -206,8 +244,8 @@ bool DataFrame::operator==(const DataFrame& rhs) const
          qFatal("Comparing two frames that don't have the sorting index");
       }
 
-      QByteArray lhsBytes = theValues.value(sortingIndex);
-      QByteArray rhsBytes = rhs.theValues.value(sortingIndex);
+      QByteArray lhsBytes = theValues.value(sortingIndex)->getFieldRawValue();
+      QByteArray rhsBytes = rhs.theValues.value(sortingIndex)->getFieldRawValue();
 
       int numBytesToSort = lhsBytes.length();
       if (numBytesToSort != rhsBytes.length())
@@ -265,10 +303,21 @@ QString DataFrame::toString() const
       retVal += " = ";
       retVal += theFields.value(fieldIndex);
       retVal += " = ";
-      retVal += Helpers::qbyteToHexString(theValues.value(fieldIndex));
+      retVal += theValues.value(fieldIndex)->getFieldValueString();
       retVal += ", ";
    }
    return retVal;
 
 
+}
+
+QLabel* DataFrame::getLabel(int fieldIndex)
+{
+   if (!theFields.contains(fieldIndex))
+   {
+      dFrameWarning() << "Trying to get label for non-existant field " << fieldIndex;
+      return nullptr;
+   }
+
+   return theValues.value(fieldIndex)->getLabel();
 }

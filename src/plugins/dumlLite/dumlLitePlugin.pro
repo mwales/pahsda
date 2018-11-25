@@ -17,8 +17,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += \
         DumlLitePlugin.cpp \
-    DumlFrame.cpp \
-    ../../DataFrame.cpp
+    DumlFrame.cpp
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
@@ -32,3 +31,4 @@ TARGET = dumlLite_plugin
 HEADERS += \
     DumlLitePlugin.h \
     DumlFrame.h
+

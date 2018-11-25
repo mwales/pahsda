@@ -10,6 +10,8 @@
 #include <QtSerialPort>
 #include <QAbstractSocket>
 
+#include "DataFrameDisplay.h"
+
 /// @todo Make custom debug level for this class
 
 #include "DataFrameFactoryInterface.h"
@@ -21,6 +23,7 @@ TrafficView::TrafficView(QWidget *parent) :
    QMainWindow(parent),
    ui(new Ui::TrafficView),
    theInterface(nullptr),
+   theCurrentProtocol(nullptr),
    theInjectorService(this),
    theInjectorClient(nullptr)
 {
@@ -76,6 +79,8 @@ TrafficView::~TrafficView()
       qDebug() << "Closing the io device before we exit";
       theInterface->close();
    }
+
+   clearFrames();
 }
 
 void TrafficView::showAbout()
@@ -183,6 +188,14 @@ void TrafficView::selectProtocol(QString protocol)
 void TrafficView::clearFrames()
 {
    qDebug() << "Clear frames called - not implemented";
+
+   // Clear all the data from the frame view
+   ui->theFrameView->setRowCount(0);
+
+   foreach(DataFrame* df, theFrames)
+   {
+      delete df;
+   }
 }
 
 void TrafficView::ioReadReady()
@@ -235,7 +248,7 @@ void TrafficView::addFrame(DataFrame* frame)
       theFrames.push_back(frame);
 
       // Frames that we keep will be deleted during cleanup of the GUI
-      displayFrame(frame, 0);
+      addFrameToTable(frame, 0);
 
       return;
    }
@@ -256,10 +269,10 @@ void TrafficView::addFrame(DataFrame* frame)
          // This is the same message type, lets just update the old frame
          qDebug() << "Pretend we update the old frame here!";
 
-         displayFrame(frame, row);
+         (*oldFrameIter)->updateFrame(*frame);
 
-         oldFrameIter = theFrames.erase(oldFrameIter);
-         theFrames.insert(oldFrameIter, frame);
+         // Delete the new frame that was just created since we are reusing the old frame
+         delete frame;
          return;
       }
 
@@ -267,17 +280,17 @@ void TrafficView::addFrame(DataFrame* frame)
       // If we got here, we need to insert the new frame here
       theFrames.insert(oldFrameIter, frame);
       ui->theFrameView->insertRow(row);
-      displayFrame(frame, row);
+      addFrameToTable(frame, row);
       return;
    }
 
    // We must be the last item to be added
    qDebug() << "Inserting as the new last frame";
    theFrames.push_back(frame);
-   displayFrame(frame, theFrames.count() - 1);
+   addFrameToTable(frame, theFrames.count() - 1);
 }
 
-void TrafficView::displayFrame(DataFrame* frame, int row)
+void TrafficView::addFrameToTable(DataFrame* frame, int row)
 {
    if (row >= ui->theFrameView->rowCount())
    {
@@ -289,21 +302,16 @@ void TrafficView::displayFrame(DataFrame* frame, int row)
    foreach(int fieldIndex, fields)
    {
       // qDebug() << "Item(row=" << row << ", col=" << col << ") = " << frame->getFieldValueString(fieldIndex);
+      QLabel* fieldDataLabel = frame->getLabel(fieldIndex);
 
-      QTableWidgetItem* item = ui->theFrameView->item(row, col);
-      if (item == nullptr)
+      if (fieldDataLabel == nullptr)
       {
-         // No item had ever been set at that location, make a new item
-         item = new QTableWidgetItem(frame->getFieldValueString(fieldIndex));
-
-         ui->theFrameView->setItem(row, col, item);
+         ui->theFrameView->setCellWidget(row, col++, new QLabel("NULLPTR"));
       }
       else
       {
-         // There was already an item at that location, update it
-         item->setText(frame->getFieldValueString(fieldIndex));
+         ui->theFrameView->setCellWidget(row, col++, fieldDataLabel);
       }
-      col++;
    }
 }
 
@@ -354,7 +362,7 @@ void TrafficView::injectorDataReady()
 
    QByteArray injectionData = theInjectorClient->readAll();
 
-   int bytesWritten = theInterface->write(injectionData);
+   long long bytesWritten = theInterface->write(injectionData);
    if (bytesWritten == injectionData.length())
    {
       qDebug() << "Injecting " << bytesWritten << " bytes";

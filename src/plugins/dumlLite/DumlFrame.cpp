@@ -16,6 +16,7 @@
 
 
 DumlFrame::DumlFrame(QByteArray framedData)
+   :DataFrame()
 {
    dFrameDebug() << "Creating a DUML Frame";
 
@@ -38,15 +39,16 @@ DumlFrame::DumlFrame(QByteArray framedData)
    sortingOrder.append(DUML_SOURCE);
    setSortingIndexes(sortingOrder);
 
-   addValue(DUML_SOF,               framedData.mid(0,1));
-   addValue(DUML_FRAME_LEN,         framedData.mid(1,2));
-   addValue(DUML_FRAME_HEADER_CRC8, framedData.mid(3,1));
-   addValue(DUML_SOURCE,            framedData.mid(4,1));
-   addValue(DUML_TARGET,            framedData.mid(5,1));
-   addValue(DUML_SEQUENCE,          framedData.mid(6,2));
-   addValue(DUML_FLAGS,             framedData.mid(8,1));
-   addValue(DUML_COMMAND_SET,       framedData.mid(9,1));
-   addValue(DUML_COMMAND_ID,        framedData.mid(10,1));
-   addValue(DUML_PAYLOAD,           framedData.mid(11, framedData.length() - 13));
-   addValue(DUML_FRAME_CRC16,       framedData.right(2));
+   updateFieldValue(DUML_SOF,               framedData.mid(0,1));
+   updateFieldValue(DUML_FRAME_LEN,         framedData.mid(1,2));
+   updateFieldValue(DUML_FRAME_HEADER_CRC8, framedData.mid(3,1));
+   updateFieldValue(DUML_SOURCE,            framedData.mid(4,1));
+   updateFieldValue(DUML_TARGET,            framedData.mid(5,1));
+   updateFieldValue(DUML_SEQUENCE,          framedData.mid(6,2));
+   updateFieldValue(DUML_FLAGS,             framedData.mid(8,1));
+   updateFieldValue(DUML_COMMAND_SET,       framedData.mid(9,1));
+   updateFieldValue(DUML_COMMAND_ID,        framedData.mid(10,1));
+   updateFieldValue(DUML_PAYLOAD,           framedData.mid(11, framedData.length() - 13));
+   updateFieldValue(DUML_FRAME_CRC16,       framedData.right(2));
 }
+
