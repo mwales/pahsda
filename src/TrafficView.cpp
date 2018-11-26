@@ -9,10 +9,27 @@
 #include <QPluginLoader>
 #include <QtSerialPort>
 #include <QAbstractSocket>
+#include <QLabel>
 
-#include "DataFrameDisplay.h"
+// Uncomment to enable debugging of this class
+#define TRAFFIC_VIEW_DEBUG
 
-/// @todo Make custom debug level for this class
+#ifdef TRAFFIC_VIEW_DEBUG
+   #define tvDebug qDebug
+   #define tvWarning qWarning
+#else
+   #define tvDebug if(0) qDebug
+   #define tvWarning if(0) qWarning
+#endif
+
+// Uncomment to enable debugging of this class
+// #define TRAFFIC_VIEW_VERBOSE_DEBUG
+
+#ifdef TRAFFIC_VIEW_VERBOSE_DEBUG
+   #define vtvDebug qDebug
+#else
+   #define vtvDebug if(0) qDebug
+#endif
 
 #include "DataFrameFactoryInterface.h"
 
@@ -29,19 +46,12 @@ TrafficView::TrafficView(QWidget *parent) :
 {
    ui->setupUi(this);
 
-   // Rich text testing stuff
-   ui->label->setTextFormat(Qt::RichText);
-
-   QString text = "<style>\n";
-   text += "  .changed { color: red; background-color: green }\n";
-   text += "</style>";
-   text += "what's up <u>00</u> in <b class='changed'>FF!</b>";
-   ui->label->setText(text);
-
    theUpdateStatusTimer.setInterval(1000);
 
    connect(ui->actionAbout, &QAction::triggered,
            this, &TrafficView::showAbout);
+   connect(ui->actionAbout_Qt, &QAction::triggered,
+           this, &TrafficView::showAboutQt);
    connect(ui->actionOpen_Serial_Port, &QAction::triggered,
            this, &TrafficView::openSerialPort);
    connect(ui->theProtocol, &QComboBox::currentTextChanged,
@@ -57,17 +67,19 @@ TrafficView::TrafficView(QWidget *parent) :
    theInjectorService.setMaxPendingConnections(1);
    if (!theInjectorService.listen(QHostAddress::Any, 30003))
    {
-      qDebug() << "Error listening on port 30003: " << theInjectorService.errorString();
+      tvDebug() << "Error listening on port 30003: " << theInjectorService.errorString();
    }
    else
    {
-      qDebug() << "Listening on port " << theInjectorService.serverPort();
+      tvDebug() << "Listening on port " << theInjectorService.serverPort();
 
       connect(&theInjectorService, SIGNAL(newConnection()),
               this, SLOT(acceptInjectorConnection()));
    }
 
    theUpdateStatusTimer.start();
+
+   ui->theFrameView->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
 }
 
 TrafficView::~TrafficView()
@@ -76,7 +88,7 @@ TrafficView::~TrafficView()
 
    if (theInterface != nullptr)
    {
-      qDebug() << "Closing the io device before we exit";
+      tvDebug() << "Closing the io device before we exit";
       theInterface->close();
    }
 
@@ -85,19 +97,26 @@ TrafficView::~TrafficView()
 
 void TrafficView::showAbout()
 {
-   qDebug() << "Showing about";
+   tvDebug() << "Showing about";
    QMessageBox::about(this,
-                            "About PAHSDA",
-                            "PAHSDA\n"
-                            "Protocol Analyzer Highlighting Structured Data for Analysis\n"
-                            "Version 0.1");
+                      "About PAHSDA",
+                      "PAHSDA\n"
+                      "Protocol Analyzer Highlighting Structured Data for Analysis\n"
+                      "Version 0.1");
+}
+
+void TrafficView::showAboutQt()
+{
+   tvDebug() << "Showing about Qt";
+   QMessageBox::aboutQt(this,
+                        "About Qt");
 }
 
 void TrafficView::openSerialPort()
 {
    if (theInterface != nullptr)
    {
-      qDebug() << "Closing the old interface before propmting user to choose new one";
+      tvDebug() << "Closing the old interface before propmting user to choose new one";
       theInterface->close();
 
       theInterface->deleteLater();
@@ -109,17 +128,17 @@ void TrafficView::openSerialPort()
    pc.show();
    pc.exec();
 
-   qDebug() << "Port chooser complete";
+   tvDebug() << "Port chooser complete";
 
    theInterface = pc.getIoDevice();
 
    if (theInterface == nullptr)
    {
-      qDebug() << "User didn't open anything...";
+      tvDebug() << "User didn't open anything...";
       return;
    }
 
-   qDebug() << "Lets connect things up to our new io device!";
+   tvDebug() << "Lets connect things up to our new io device!";
 
    if (theCurrentProtocol == nullptr)
    {
@@ -143,7 +162,7 @@ void TrafficView::openSerialPort()
 
 void TrafficView::closeInterface()
 {
-   qDebug() << "Close button pressed";
+   tvDebug() << "Close button pressed";
 
    if (theInterface == nullptr)
    {
@@ -155,7 +174,7 @@ void TrafficView::closeInterface()
    theInterface->deleteLater();
    theInterface = nullptr;
 
-   qDebug() << "Status of protocol:\n" << theCurrentProtocol->statusToString();
+   tvDebug() << "Status of protocol:\n" << theCurrentProtocol->statusToString();
 }
 
 void TrafficView::selectProtocol(QString protocol)
@@ -171,7 +190,7 @@ void TrafficView::selectProtocol(QString protocol)
    // If the protocol hasn't really changed, just exit and do nothing
    if (theCurrentProtocol == theDataFrameFactories[protocol])
    {
-      qDebug() << "Selected the same protocol that was already loaded";
+      tvDebug() << "Selected the same protocol that was already loaded";
       return;
    }
 
@@ -182,12 +201,12 @@ void TrafficView::selectProtocol(QString protocol)
 
    // Reconnect signals appropriately to route data
 
-   qDebug() << theCurrentProtocol->statusToString();
+   tvDebug() << theCurrentProtocol->statusToString();
 }
 
 void TrafficView::clearFrames()
 {
-   qDebug() << "Clear frames called - not implemented";
+   tvDebug() << "Clear frames called";
 
    // Clear all the data from the frame view
    ui->theFrameView->setRowCount(0);
@@ -200,11 +219,11 @@ void TrafficView::clearFrames()
 
 void TrafficView::ioReadReady()
 {
-   qDebug() << __PRETTY_FUNCTION__;
+   vtvDebug() << __PRETTY_FUNCTION__;
 
    if (theCurrentProtocol == nullptr)
    {
-      qWarning() << "Received data, but no protocol configured to receive it";
+      tvWarning() << "Received data, but no protocol configured to receive it";
       return;
    }
 
@@ -215,10 +234,10 @@ void TrafficView::ioReadReady()
       addFrame(theCurrentProtocol->getNextFrame());
    }
 
-   // qDebug() << "Going to dump the contents of all the frames:";
+   // vtvDebug() << "Going to dump the contents of all the frames:";
    // foreach(DataFrame* df, theFrames)
    // {
-   //    qDebug() << df->toString();
+   //    tvDebug() << df->toString();
    // }
 }
 
@@ -231,7 +250,7 @@ void TrafficView::addFrame(DataFrame* frame)
    // Special case, is there no frames so far?
    if (theFrames.empty())
    {
-      qDebug() << "Adding first frame, formatting the headers";
+      tvDebug() << "Adding first frame, formatting the headers";
       // No frames have ever been received, use this frame to format the table!
 
       // Add the header
@@ -267,7 +286,7 @@ void TrafficView::addFrame(DataFrame* frame)
       if (*frame == **oldFrameIter)
       {
          // This is the same message type, lets just update the old frame
-         qDebug() << "Pretend we update the old frame here!";
+         vtvDebug() << "Update the old frame here!";
 
          (*oldFrameIter)->updateFrame(*frame);
 
@@ -276,7 +295,7 @@ void TrafficView::addFrame(DataFrame* frame)
          return;
       }
 
-      qDebug() << "Inserting frame in the middle at row " << row;
+      vtvDebug() << "Inserting frame in the middle at row " << row;
       // If we got here, we need to insert the new frame here
       theFrames.insert(oldFrameIter, frame);
       ui->theFrameView->insertRow(row);
@@ -285,7 +304,7 @@ void TrafficView::addFrame(DataFrame* frame)
    }
 
    // We must be the last item to be added
-   qDebug() << "Inserting as the new last frame";
+   vtvDebug() << "Inserting as the new last frame";
    theFrames.push_back(frame);
    addFrameToTable(frame, theFrames.count() - 1);
 }
@@ -301,8 +320,8 @@ void TrafficView::addFrameToTable(DataFrame* frame, int row)
    int col = 0;
    foreach(int fieldIndex, fields)
    {
-      // qDebug() << "Item(row=" << row << ", col=" << col << ") = " << frame->getFieldValueString(fieldIndex);
-      QLabel* fieldDataLabel = frame->getLabel(fieldIndex);
+      // tvDebug() << "Item(row=" << row << ", col=" << col << ") = " << frame->getFieldValueString(fieldIndex);
+      QLabel* fieldDataLabel = frame->getLabel(fieldIndex, this);
 
       if (fieldDataLabel == nullptr)
       {
@@ -313,13 +332,15 @@ void TrafficView::addFrameToTable(DataFrame* frame, int row)
          ui->theFrameView->setCellWidget(row, col++, fieldDataLabel);
       }
    }
+
+
 }
 
 void TrafficView::acceptInjectorConnection()
 {
    if (theInjectorClient != nullptr)
    {
-      qDebug() << "Dropping connection with existing injector client";
+      tvDebug() << "Dropping connection with existing injector client";
       theInjectorClient->close();
       theInjectorClient->deleteLater();
       theInjectorClient = nullptr;
@@ -327,8 +348,8 @@ void TrafficView::acceptInjectorConnection()
 
    if (!theInjectorService.hasPendingConnections())
    {
-      qWarning() << "Received a signal that connection was ready, but no connections pending";
-      qWarning() << " errorString = " << theInjectorService.errorString();
+      tvWarning() << "Received a signal that connection was ready, but no connections pending";
+      tvWarning() << " errorString = " << theInjectorService.errorString();
       return;
    }
 
@@ -336,7 +357,7 @@ void TrafficView::acceptInjectorConnection()
 
    if (theInjectorClient == nullptr)
    {
-      qWarning() << "nextPendingConnection returned a bad socket pointer";
+      tvWarning() << "nextPendingConnection returned a bad socket pointer";
       return;
    }
 
@@ -347,16 +368,16 @@ void TrafficView::acceptInjectorConnection()
    connect(theInjectorClient, SIGNAL(error(QAbstractSocket::SocketError)),
            this, SLOT(injectorClientError(QAbstractSocket::SocketError)));
 
-   qDebug() << "Accepted new connection from " << theInjectorClient->peerName();
+   tvDebug() << "Accepted new connection from " << theInjectorClient->peerName();
 }
 
 void TrafficView::injectorDataReady()
 {
-   qDebug() << "Injector data ready";
+   tvDebug() << "Injector data ready";
 
    if (theInterface == nullptr)
    {
-      qWarning() << "Injector trying to inject data, but no interface up yet";
+      tvWarning() << "Injector trying to inject data, but no interface up yet";
       return;
    }
 
@@ -365,12 +386,12 @@ void TrafficView::injectorDataReady()
    long long bytesWritten = theInterface->write(injectionData);
    if (bytesWritten == injectionData.length())
    {
-      qDebug() << "Injecting " << bytesWritten << " bytes";
-      qDebug() << " INJDATA: " << Helpers::qbyteToHexString(injectionData);
+      tvDebug() << "Injecting " << bytesWritten << " bytes";
+      tvDebug() << " INJDATA: " << Helpers::qbyteToHexString(injectionData);
    }
    else
    {
-      qDebug() << "Failed to inject data.  Received " << injectionData.length()
+      tvDebug() << "Failed to inject data.  Received " << injectionData.length()
                << " bytes to inject, wrote " << bytesWritten << " bytes";
    }
 
@@ -378,7 +399,7 @@ void TrafficView::injectorDataReady()
 
 void TrafficView::injectorClientDisconnected()
 {
-   qDebug() << "Injector client disconnected";
+   tvDebug() << "Injector client disconnected";
 
    theInjectorClient->close();
    theInjectorClient->deleteLater();
@@ -387,7 +408,7 @@ void TrafficView::injectorClientDisconnected()
 
 void TrafficView::injectorClientError(QAbstractSocket::SocketError error)
 {
-   qWarning() << "Injector client had an error" << error;
+   tvWarning() << "Injector client had an error" << error;
 }
 
 void TrafficView::statusUpdateTimerFired()
@@ -402,14 +423,14 @@ void TrafficView::loadPlugins()
 {
    QDir directory("plugins");
    QStringList fileListing = directory.entryList(QDir::NoDotAndDotDot | QDir::Files);
-   qDebug() << fileListing.join(" ");
+   tvDebug() << fileListing.join(" ");
 
    QStringList pluginListing;
    foreach(QString singleFile, fileListing)
    {
       if (singleFile.endsWith("plugin.so"))
       {
-         qDebug() << "Has plugin name: " + singleFile;
+         tvDebug() << "Has plugin name: " + singleFile;
 
          singleFile.prepend(QDir::separator());
          singleFile.prepend("plugins");
@@ -427,13 +448,13 @@ void TrafficView::loadPlugins()
 
       if (factory == nullptr)
       {
-         qDebug() << "Failed to load the plugin";
-         qDebug() << pluginLoader.errorString();
+         tvDebug() << "Failed to load the plugin";
+         tvDebug() << pluginLoader.errorString();
 
       }
       else
       {
-         qDebug() << "Successfully loaded the plugin";
+         tvDebug() << "Successfully loaded the plugin";
 
          theDataFrameFactories.insert(factory->protocolName(), factory);
 

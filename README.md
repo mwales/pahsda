@@ -11,6 +11,21 @@ Requires Qt5 with QtSerialPort package
 
 # Building
 
+```
+cd pahsda
+./build.sh
+```
+
 # Modularity
+
+DUML Lite is a plugin for analyzing DUML traffic from DJI drones.  You can use
+the files in src/plugins/dumlLite as a template for making your own plugin to
+analyze different protocols.
+
+I plan to make the IO initialization a plugin as well.
+
+# Screenshots
+
+![Screenshot](images/Screenshot.png)
 
 

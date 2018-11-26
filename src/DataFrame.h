@@ -6,10 +6,12 @@
 #include <QString>
 #include <QList>
 #include <QByteArray>
+#include <QVector>
 
 
 class FrameDataField;
 class QLabel;
+class QObject;
 
 /**
  * Base class for all frame types.  Each frame should be divided into parts (fields).  Field name
@@ -57,7 +59,9 @@ public:
 
    QString toString() const;
 
-   QLabel* getLabel(int fieldIndex);
+   QLabel* getLabel(int fieldIndex, QObject* parent);
+
+   void setHighlighting(QVector<int> indexList, int numTicks);
 
 protected:
 
@@ -66,6 +70,10 @@ protected:
 
    /// @todo Used share pointer for the following field so we don't waste time / memory
    QMap<int, QString> theAbbreviations;
+
+   QVector<int> theHighlightedFields;
+
+   int theHighlightDuration;
 
    QDateTime theRxTime;
 

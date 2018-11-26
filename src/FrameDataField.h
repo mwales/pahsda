@@ -7,6 +7,7 @@
 #include <QByteArray>
 
 #include <QString>
+#include <QTimer>
 
 class QLabel;
 
@@ -26,13 +27,13 @@ Q_OBJECT
 public:
    FrameDataField(QObject* parent = Q_NULLPTR);
 
-   void setHighlightDuration(int millisecs);
+   void setHighlightDuration(int timerTicks);
 
    void updateValue(QByteArray data);
 
    void setValue(QByteArray data);
 
-   QLabel* getLabel();
+   QLabel* getLabel(QObject* parentParam);
 
    QByteArray getFieldRawValue();
 
@@ -40,9 +41,13 @@ public:
 
    QString getFieldValueRichString();
 
+protected slots:
+
+   void timerTick();
+
 protected:
 
-   QTimer theColorChangeTimerTick;
+   int colorIndexLookup(int ticksLeft);
 
    QMap<int, int> theBytesHighlighted;
 
@@ -51,6 +56,16 @@ protected:
    int theHighlightInterval;
 
    QByteArray theData;
+
+   QString theStyleString;
+
+
+
+   static const QStringList BACKGROUND_SHADES;
+
+   static const int NUM_SHADES;
+
+   QTimer theUpdateTimer;
 };
 
 #endif // FRAMEDATAFIELD_H

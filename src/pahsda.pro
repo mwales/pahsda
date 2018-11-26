@@ -27,7 +27,6 @@ SOURCES += \
         main.cpp \
         PortChooser.cpp \
     DataFrame.cpp \
-    DataFrameDisplay.cpp \
     TrafficView.cpp \
     Helpers.cpp \
     FrameDataField.cpp
@@ -35,7 +34,6 @@ SOURCES += \
 HEADERS += \
         PortChooser.h \
     DataFrame.h \
-    DataFrameDisplay.h \
     DataFrameFactoryInterface.h \
     TrafficView.h \
     Helpers.h \

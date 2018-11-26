@@ -33,6 +33,7 @@ public:
 private slots:
 
    void showAbout();
+   void showAboutQt();
 
    void openSerialPort();
 

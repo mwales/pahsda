@@ -2,9 +2,10 @@
 
 #include <QtDebug>
 #include <QByteArray>
+#include <QVector>
 
 // Uncomment to enable debugging of this class
-#define DUML_FRAME_DEBUG
+// #define DUML_FRAME_DEBUG
 
 #ifdef DUML_FRAME_DEBUG
    #define dFrameDebug qDebug
@@ -50,5 +51,9 @@ DumlFrame::DumlFrame(QByteArray framedData)
    updateFieldValue(DUML_COMMAND_ID,        framedData.mid(10,1));
    updateFieldValue(DUML_PAYLOAD,           framedData.mid(11, framedData.length() - 13));
    updateFieldValue(DUML_FRAME_CRC16,       framedData.right(2));
+
+   QVector<int> highlightList;
+   highlightList << DUML_PAYLOAD << DUML_SEQUENCE;
+   setHighlighting(highlightList, 4);
 }
 

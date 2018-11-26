@@ -311,7 +311,7 @@ QString DataFrame::toString() const
 
 }
 
-QLabel* DataFrame::getLabel(int fieldIndex)
+QLabel* DataFrame::getLabel(int fieldIndex, QObject* parent)
 {
    if (!theFields.contains(fieldIndex))
    {
@@ -319,5 +319,31 @@ QLabel* DataFrame::getLabel(int fieldIndex)
       return nullptr;
    }
 
-   return theValues.value(fieldIndex)->getLabel();
+   return theValues.value(fieldIndex)->getLabel(parent);
+}
+
+void DataFrame::setHighlighting(QVector<int> indexList, int numTicks)
+{
+   theHighlightedFields.clear();
+
+   foreach(int fieldIndex, indexList)
+   {
+      if (theFields.contains(fieldIndex))
+      {
+         theHighlightedFields.push_back(fieldIndex);
+      }
+      else
+      {
+         dFrameWarning() << "Trying to highlight an invalid index: " << fieldIndex;
+         continue;
+      }
+
+      if (theValues.contains(fieldIndex))
+      {
+         // A frame was already created
+         theValues.value(fieldIndex)->setHighlightDuration(numTicks);
+      }
+   }
+
+   theHighlightDuration = numTicks;
 }
