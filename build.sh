@@ -37,54 +37,36 @@ echo "Main project built successfully!"
 mkdir plugins
 cd plugins
 
-# Build the test plugin
-mkdir testPlugin
-cd testPlugin
+for pluginDirName in ../../src/plugins/*; do
+	pluginName=$(basename $pluginDirName)
+	echo -e "\nBuilding plugin $pluginName"
+	
+	mkdir $pluginName
+	cd $pluginName
+	
+	echo "Now in $(pwd)"
+	qmake ../../../src/plugins/${pluginName}/*.pro
 
-qmake ../../../src/plugins/testPlugin/testPlugin.pro
+	if [ $? -ne 0 ];
+	then
+		echo "qmake failed for the plugin $pluginName"
+		exit 1
+	fi
 
-if [ $? -ne 0 ];
-then
-	echo "Error building the test plugin"
-	exit 2
-fi
+	make -j8
+	
+	if [ $? -ne 0 ];
+	then
+		echo "Compilation failed for the plugin $pluginName"
+		exit 1
+	fi
 
-make -j8
-if [ $? -ne 0 ];
-then
-	echo "Error building the testPluging"
-	exit 2
-fi
+	mv *.so ../
+	
+	cd ..
 
-echo "Test Plugin successfully built"
-
-# Copy the plugin binary to the directory the executable we just build wil be looking for it in
-cp libtest_plugin.so ../
-
-# Get ready to build the DUML Lite plugin
-cd ..
-mkdir dumlLitePlugin
-cd dumlLitePlugin
-
-
-qmake ../../../src/plugins/dumlLite/dumlLitePlugin.pro
-
-if [ $? -ne 0 ];
-then
-	echo "Error building the DUML Lite plugin"
-	exit 2
-fi
-
-make -j8
-if [ $? -ne 0 ];
-then
-	echo "Error building the DUML Lite plugin"
-	exit 2
-fi
-
-echo "DUML Lite Plugin successfully built"
-
-cp libdumlLite_plugin.so ../
+	echo "*** Plugin $pluginName build success!"
+done
 
 echo "Build completed"
 
