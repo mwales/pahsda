@@ -13,6 +13,7 @@ Requires Qt5 with QtSerialPort package
 
 ```
 cd pahsda
+git submodule update --init --recursive
 ./build.sh
 ```
 
