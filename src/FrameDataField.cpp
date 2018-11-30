@@ -162,14 +162,44 @@ QString FrameDataField::getFieldValueRichString()
 
       int highlightVal = theBytesHighlighted.value(i, 0);
 
-      retVal += "<b class='fdf";
-      retVal += QString::number(highlightVal);
-      retVal += "'>";
+      if (theForceColorFlag)
+      {
+          retVal += "<b class='forcemode'>";
+      }
+      else
+      {
+          retVal += "<b class='fdf";
+          retVal += QString::number(highlightVal);
+          retVal += "'>";
+      }
+
       retVal += Helpers::qbyteToHexString(theData.mid(i, 1));
       retVal += "</b>";
    }
 
    return retVal;
+}
+
+void FrameDataField::forceColor(QString colorString){
+    theForceColorFlag = true;
+    theForceColor = colorString;
+
+    theStyleString = "<style>\n";
+
+    theStyleString += "  .forcemode";
+    theStyleString += " { background-color: ";
+    theStyleString += colorString;
+    theStyleString += " } \n";
+
+    theStyleString += "</style>";
+}
+
+void FrameDataField::unforceColor()
+{
+    theForceColorFlag = false;
+
+    // Set the style string text back to normal
+    setHighlightDuration(theHighlightInterval);
 }
 
 void FrameDataField::timerTick()

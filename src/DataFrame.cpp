@@ -347,3 +347,11 @@ void DataFrame::setHighlighting(QVector<int> indexList, int numTicks)
 
    theHighlightDuration = numTicks;
 }
+
+void DataFrame::colorField(int fieldIndex, QString color)
+{
+    if (theValues.contains(fieldIndex))
+    {
+       theValues.value(fieldIndex)->forceColor(color);
+    }
+}

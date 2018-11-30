@@ -63,6 +63,8 @@ public:
 
    void setHighlighting(QVector<int> indexList, int numTicks);
 
+   void colorField(int fieldIndex, QString color);
+
 protected:
 
    /// @todo Used shared pointers for the following field so we don't waste time / memory

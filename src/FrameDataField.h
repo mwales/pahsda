@@ -41,6 +41,10 @@ public:
 
    QString getFieldValueRichString();
 
+   void forceColor(QString colorString);
+
+   void unforceColor();
+
 protected slots:
 
    void timerTick();
@@ -59,7 +63,9 @@ protected:
 
    QString theStyleString;
 
-
+   // For when a field needs to be permenantly colored a color
+   bool theForceColorFlag;
+   QString theForceColor;
 
    static const QStringList BACKGROUND_SHADES;
 
