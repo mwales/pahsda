@@ -29,7 +29,8 @@ SOURCES += \
     DataFrame.cpp \
     TrafficView.cpp \
     Helpers.cpp \
-    FrameDataField.cpp
+    FrameDataField.cpp \
+    BinaryFileIoDevice.cpp
 
 HEADERS += \
         PortChooser.h \
@@ -37,7 +38,8 @@ HEADERS += \
     DataFrameFactoryInterface.h \
     TrafficView.h \
     Helpers.h \
-    FrameDataField.h
+    FrameDataField.h \
+    BinaryFileIoDevice.h
 
 FORMS += \
         PortChooser.ui \

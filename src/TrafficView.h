@@ -37,6 +37,8 @@ private slots:
 
    void openSerialPort();
 
+   void openDataFile();
+
    void closeInterface();
 
    void selectProtocol(QString protocol);

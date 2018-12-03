@@ -172,6 +172,8 @@ void DataFrame::updateFrame(DataFrame const & df)
    {
       theValues.value(fieldIndex)->updateValue(df.getFieldRawValue(fieldIndex));
    }
+
+   theRxTime = df.getTimestamp();
 }
 
 bool DataFrame::operator<(const DataFrame& rhs) const

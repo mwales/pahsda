@@ -10,6 +10,10 @@
 #include <QtSerialPort>
 #include <QAbstractSocket>
 #include <QLabel>
+#include <QFileDialog>
+#include <QInputDialog>
+
+#include "BinaryFileIoDevice.h"
 
 // Uncomment to enable debugging of this class
 #define TRAFFIC_VIEW_DEBUG
@@ -23,7 +27,7 @@
 #endif
 
 // Uncomment to enable debugging of this class
-// #define TRAFFIC_VIEW_VERBOSE_DEBUG
+#define TRAFFIC_VIEW_VERBOSE_DEBUG
 
 #ifdef TRAFFIC_VIEW_VERBOSE_DEBUG
    #define vtvDebug qDebug
@@ -54,6 +58,8 @@ TrafficView::TrafficView(QWidget *parent) :
            this, &TrafficView::showAboutQt);
    connect(ui->actionOpen_Serial_Port, &QAction::triggered,
            this, &TrafficView::openSerialPort);
+   connect(ui->actionOpen_Data_File, &QAction::triggered,
+           this, &TrafficView::openDataFile);
    connect(ui->theProtocol, &QComboBox::currentTextChanged,
            this, &TrafficView::selectProtocol);
    connect(ui->theCloseButton, &QPushButton::clicked,
@@ -138,6 +144,8 @@ void TrafficView::openSerialPort()
       return;
    }
 
+   clearFrames();
+
    tvDebug() << "Lets connect things up to our new io device!";
 
    if (theCurrentProtocol == nullptr)
@@ -158,6 +166,42 @@ void TrafficView::openSerialPort()
    {
       theCurrentProtocol->pushMsgBytes(theInterface->readAll());
    }
+}
+
+void TrafficView::openDataFile()
+{
+   QString binaryFilePath = QFileDialog::getOpenFileName(this, "Open binary file",
+                                                     "", "Binary Files (*.bin);;Any File (*)");
+
+   if (binaryFilePath == "")
+   {
+      // User canceled
+      return;
+   }
+
+   tvDebug() << "Lets connect things up to our binary file io device!";
+
+   if (theCurrentProtocol == nullptr)
+   {
+      QMessageBox::warning(this, "No protocol selected",
+                           "You must select a protocol first before opening up a binary data file");
+      return;
+   }
+
+   clearFrames();
+
+   int numSeconds = QInputDialog::getInt(this, "File Processing Time",
+                                         "How long do you want it to take to read the file",
+                                         120, 1, 7200);
+
+   BinaryFileIoDevice* bfid = new BinaryFileIoDevice(binaryFilePath, this);
+   bfid->setTimeToReadFile(numSeconds);
+
+   connect(bfid, &BinaryFileIoDevice::readyToReadTimer,
+           this, &TrafficView::ioReadReady);
+
+   bfid->startReading();
+   theInterface = bfid;
 }
 
 void TrafficView::closeInterface()
@@ -227,7 +271,10 @@ void TrafficView::ioReadReady()
       return;
    }
 
-   theCurrentProtocol->pushMsgBytes(theInterface->readAll());
+   // I really want to call readAll() here, but it's not virtual, so we have to do it this way to
+   // support the BinaryFileIoDevice
+   qint64 numBytes = theInterface->bytesAvailable();
+   theCurrentProtocol->pushMsgBytes(theInterface->read(numBytes));
 
    while(theCurrentProtocol->isFrameReady())
    {
