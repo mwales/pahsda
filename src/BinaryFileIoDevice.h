@@ -35,10 +35,13 @@ protected slots:
 
    void readTimeComplete();
 
+   void restartReadyToReadTimer();
+
 protected:
 
    // Timer that goes off every 100ms to cause users to read a little bit more of the file
    QTimer theTimer;
+   bool theTimerRunFlag;
 
    // This timer is dual purpose.  It keeps track of how long the entire read is, and it also
    // tells when to turn off theTimer from repeatedly firing

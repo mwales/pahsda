@@ -2,7 +2,7 @@
 #include <QtDebug>
 
 // Uncomment to enable debugging of this class
-#define BINARY_FILE_DEBUG
+//#define BINARY_FILE_DEBUG
 
 #ifdef BINARY_FILE_DEBUG
    #define bfDebug qDebug
@@ -15,15 +15,17 @@
 BinaryFileIoDevice::BinaryFileIoDevice(QString filename, QObject* parent):
    QFile(filename, parent),
    theTimer(parent),
+   theTimerRunFlag(false),
    theFinishedTimer(parent),
    theTimeToReadFileMs(60000),
    theFileSize(0)
 {
    bfDebug() << "BinaryFileIoDevice for file: " << filename;
-   theTimer.setSingleShot(false);
-   theTimer.setInterval(100);
+   theTimer.setSingleShot(true);
    connect(&theTimer, &QTimer::timeout,
            this, &BinaryFileIoDevice::readyToReadTimer);
+   connect(&theTimer, &QTimer::timeout,
+           this, &BinaryFileIoDevice::restartReadyToReadTimer);
 
    theFinishedTimer.setSingleShot(true);
    connect(&theFinishedTimer, &QTimer::timeout,
@@ -60,7 +62,8 @@ void BinaryFileIoDevice::startReading()
 
    theFileSize = size();
 
-   theTimer.start();
+   theTimer.start(100);
+   theTimerRunFlag = true;
    theFinishedTimer.start(theTimeToReadFileMs);
 }
 
@@ -68,8 +71,16 @@ void BinaryFileIoDevice::readTimeComplete()
 {
    bfDebug() << __PRETTY_FUNCTION__;
 
-   theTimer.stop();
+   theTimerRunFlag = false;
 
    // Fire it one last time so the clients will read all the bytes of the file
    emit readyToReadTimer();
+}
+
+void BinaryFileIoDevice::restartReadyToReadTimer()
+{
+   bfDebug() << "Restarting the ready to read timer";
+
+   if(theTimerRunFlag)
+      theTimer.start(100);
 }

@@ -6,7 +6,7 @@
 #include "FrameDataField.h"
 
 // Uncomment to enable debugging of this class
-#define DATA_FRAME_DEBUG
+// #define DATA_FRAME_DEBUG
 
 #ifdef DATA_FRAME_DEBUG
    #define dFrameDebug qDebug
@@ -168,6 +168,9 @@ void DataFrame::setSortingIndexes(QList<int> sortOrdering)
 
 void DataFrame::updateFrame(DataFrame const & df)
 {
+   dFrameDebug() << "updateFrame called:\n\tOLD: " << toString() << "\n\tNEW: " << df.toString();
+
+
    foreach(int fieldIndex, theValues.keys())
    {
       theValues.value(fieldIndex)->updateValue(df.getFieldRawValue(fieldIndex));

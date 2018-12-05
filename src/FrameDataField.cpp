@@ -40,6 +40,7 @@ FrameDataField::FrameDataField(QObject* parent):
    QObject(parent),
    theLabel(nullptr),
    theHighlightInterval(0),
+   theForceColorFlag(false),
    theUpdateTimer(this)
 {
    theUpdateTimer.setSingleShot(true);
@@ -74,6 +75,7 @@ void FrameDataField::updateValue(QByteArray data)
    if (!theHighlightInterval)
    {
       // Highlighting has not been configured for this data field
+      fdfDebug() << "No highlighting.  OLD=" << theData.toHex() << " NEW=" << data.toHex();
       theData = data;
 
       if (theLabel != nullptr)
@@ -83,6 +85,9 @@ void FrameDataField::updateValue(QByteArray data)
 
       return;
    }
+
+   fdfDebug() << "Highlighting on.  OLD=" << theData.toHex() << " NEW=" << data.toHex();
+
 
    // Incase the field length has changed, only use the shortest field length
    int numBytes = theData.length();
@@ -106,6 +111,7 @@ void FrameDataField::updateValue(QByteArray data)
    if (theLabel != nullptr)
    {
       theLabel->setText(getFieldValueRichString());
+      fdfDebug() << "Label: " << getFieldValueRichString();
    }
 
    if (changeFound && !theUpdateTimer.isActive())
@@ -130,9 +136,24 @@ QLabel* FrameDataField::getLabel(QObject* parentParam)
 
    if (theLabel == nullptr)
    {
+      // If highlighting is turned on, highlight everything on a fresh frame!
+      if (theHighlightInterval)
+      {
+         for(int i = 0; i < theData.length(); i++)
+         {
+            theBytesHighlighted[i] = theHighlightInterval;
+         }
+
+         if (!theUpdateTimer.isActive())
+         {
+            fdfDebug() << "Starting the timer (fresh label created)";
+            theUpdateTimer.start(FRAMER_TIMER_TICK_DURATION_MS);
+         }
+      }
+
       theLabel = new QLabel();
       theLabel->setTextFormat(Qt::RichText);
-      theLabel->setText(Helpers::qbyteToHexString(theData));
+      theLabel->setText(getFieldValueRichString());
       return theLabel;
    }
    else

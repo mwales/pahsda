@@ -39,6 +39,12 @@ cd plugins
 
 for pluginDirName in ../../src/plugins/*; do
 	pluginName=$(basename $pluginDirName)
+
+	if [[ $pluginName =~ build-.* ]]; then
+		echo -e "\nIgnoring build directory $pluginName in plugins directory"
+		continue
+	fi
+
 	echo -e "\nBuilding plugin $pluginName"
 	
 	mkdir $pluginName

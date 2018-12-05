@@ -26,8 +26,8 @@
    #define tvWarning if(0) qWarning
 #endif
 
-// Uncomment to enable debugging of this class
-#define TRAFFIC_VIEW_VERBOSE_DEBUG
+// Uncomment to enable verbose debugging of this class
+// #define TRAFFIC_VIEW_VERBOSE_DEBUG
 
 #ifdef TRAFFIC_VIEW_VERBOSE_DEBUG
    #define vtvDebug qDebug
@@ -114,8 +114,7 @@ void TrafficView::showAbout()
 void TrafficView::showAboutQt()
 {
    tvDebug() << "Showing about Qt";
-   QMessageBox::aboutQt(this,
-                        "About Qt");
+   QMessageBox::aboutQt(this, "About Qt");
 }
 
 void TrafficView::openSerialPort()
@@ -170,16 +169,6 @@ void TrafficView::openSerialPort()
 
 void TrafficView::openDataFile()
 {
-   QString binaryFilePath = QFileDialog::getOpenFileName(this, "Open binary file",
-                                                     "", "Binary Files (*.bin);;Any File (*)");
-
-   if (binaryFilePath == "")
-   {
-      // User canceled
-      return;
-   }
-
-   tvDebug() << "Lets connect things up to our binary file io device!";
 
    if (theCurrentProtocol == nullptr)
    {
@@ -188,11 +177,49 @@ void TrafficView::openDataFile()
       return;
    }
 
+   QString binaryFilePath;
+   int numSeconds;
+
+   // Can supply some command line args to make testing much faster / avoid dialogs
+   QString const TEST_ARG = "-TEST_DATA_FILE=";
+   QStringList testArgs = qGuiApp->arguments().filter(TEST_ARG);
+   if (testArgs.length() == 1)
+   {
+      QStringList argParts = testArgs.first().remove(TEST_ARG).split(',');
+      if (argParts.length() == 2)
+      {
+         binaryFilePath = argParts[0];
+         numSeconds = argParts[1].toInt();
+
+         tvDebug() << "TEST_DATA_FILE filename: " << binaryFilePath;
+         tvDebug() << "TEST_DATA_FILE numSeconds: " << numSeconds;
+      }
+      else
+      {
+         tvWarning() << "TEST_DATA_FILE requires filePath and numSeconds";
+         return;
+      }
+   }
+   else
+   {
+      // Normal path for normal users
+      binaryFilePath = QFileDialog::getOpenFileName(this, "Open binary file",
+                                                        "", "Binary Files (*.bin);;Any File (*)");
+
+      if (binaryFilePath == "")
+      {
+         // User canceled
+         return;
+      }
+
+      numSeconds = QInputDialog::getInt(this, "File Processing Time",
+                                            "How long do you want it to take to read the file",
+                                            120, 1, 7200);
+   }
+
    clearFrames();
 
-   int numSeconds = QInputDialog::getInt(this, "File Processing Time",
-                                         "How long do you want it to take to read the file",
-                                         120, 1, 7200);
+   tvDebug() << "Lets connect things up to our binary file io device!";
 
    BinaryFileIoDevice* bfid = new BinaryFileIoDevice(binaryFilePath, this);
    bfid->setTimeToReadFile(numSeconds);
