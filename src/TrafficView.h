@@ -57,6 +57,12 @@ private slots:
 
    void statusUpdateTimerFired();
 
+   /** Copies all the cells selected to the clipboard */
+   void copyCells();
+
+   /** Copies the cell clicked ot the clipboard */
+   void cellDoubleClicked(int row, int col);
+
 private:
 
    void loadPlugins();
@@ -64,6 +70,11 @@ private:
    void addFrame(DataFrame* frame);
 
    void addFrameToTable(DataFrame* frame, int row);
+
+   typedef QPair<int, int> ColRange;
+
+   bool columnLookupHelper(QVector<ColRange> const & theColRangeList,
+                           int columnOfInterest) const;
 
    Ui::TrafficView *ui;
 

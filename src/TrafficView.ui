@@ -86,7 +86,14 @@
     <addaction name="actionAbout"/>
     <addaction name="actionAbout_Qt"/>
    </widget>
+   <widget class="QMenu" name="menuEdit">
+    <property name="title">
+     <string>Edit</string>
+    </property>
+    <addaction name="actionCopy_Cell"/>
+   </widget>
    <addaction name="menuFile"/>
+   <addaction name="menuEdit"/>
    <addaction name="menuHelp"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
@@ -116,6 +123,11 @@
   <action name="actionOpen_Data_File">
    <property name="text">
     <string>Open Data File...</string>
+   </property>
+  </action>
+  <action name="actionCopy_Cell">
+   <property name="text">
+    <string>Copy Cell</string>
    </property>
   </action>
  </widget>

@@ -12,6 +12,8 @@
 #include <QLabel>
 #include <QFileDialog>
 #include <QInputDialog>
+#include <QClipboard>
+#include <QTableWidgetSelectionRange>
 
 #include "BinaryFileIoDevice.h"
 
@@ -60,6 +62,10 @@ TrafficView::TrafficView(QWidget *parent) :
            this, &TrafficView::openSerialPort);
    connect(ui->actionOpen_Data_File, &QAction::triggered,
            this, &TrafficView::openDataFile);
+   connect(ui->actionCopy_Cell, &QAction::triggered,
+           this, &TrafficView::copyCells);
+   connect(ui->theFrameView, &QTableWidget::cellDoubleClicked,
+           this, &TrafficView::cellDoubleClicked);
    connect(ui->theProtocol, &QComboBox::currentTextChanged,
            this, &TrafficView::selectProtocol);
    connect(ui->theCloseButton, &QPushButton::clicked,
@@ -491,6 +497,109 @@ void TrafficView::statusUpdateTimerFired()
    {
       ui->statusBar->showMessage(theCurrentProtocol->statusToString(), 1000);
    }
+}
+
+bool TrafficView::columnLookupHelper(QVector<TrafficView::ColRange > const & theColRangeList,
+                                     int columnOfInterest) const
+{
+   for(int i = 0; i < theColRangeList.size(); i++)
+   {
+      TrafficView::ColRange curRange = theColRangeList[i];
+
+      if ( (columnOfInterest >= curRange.first) &&
+           (columnOfInterest <= curRange.second) )
+      {
+         return true;
+      }
+   }
+
+   return false;
+}
+
+void TrafficView::copyCells()
+{
+   QString clipboardData;
+
+   QList<QTableWidgetSelectionRange> ranges = ui->theFrameView->selectedRanges();
+
+   // foreach(QTableWidgetSelectionRange curRange, ranges)
+   // {
+   //    tvDebug() << "Selection Range";
+   //    tvDebug() << "Bottom Row = " << curRange.bottomRow() << ", topRow = " << curRange.topRow()
+   //              << ", NumRows = " << curRange.rowCount();
+   //    tvDebug() << "Right Col = " << curRange.rightColumn() << ", leftCol = " << curRange.leftColumn()
+   //              << ", NumCols = " << curRange.columnCount();
+   // }
+
+   int currentRow = 0;
+   foreach(DataFrame* theCurFrame, theFrames)
+   {
+      // Is this row in the selection list?
+      QVector<ColRange > colRanges;
+
+      // Find all the columns for this row that should get copied
+      foreach(QTableWidgetSelectionRange curRange, ranges)
+      {
+         if ( (currentRow <= curRange.bottomRow()) && (currentRow >= curRange.topRow()) )
+         {
+            // This row is in the range!
+            ColRange curColRange;
+            curColRange.first = curRange.leftColumn();
+            curColRange.second = curRange.rightColumn();
+            colRanges.push_back(curColRange);
+         }
+      }
+
+      // Are there any columns that need to be copied?
+      if (colRanges.empty())
+      {
+         // Goto the next row
+         currentRow++;
+         continue;
+      }
+
+      // Copy all the columns that need to be copied
+      QStringList rowData;
+      int colNum = 0;
+      QList<int> colIndexLookup = theCurFrame->getFieldIndexes();
+      foreach(int curColIndex, colIndexLookup)
+      {
+         if (columnLookupHelper(colRanges, colNum))
+         {
+            rowData.append(theCurFrame->getFieldValueString(curColIndex));
+         }
+
+         colNum++;
+      }
+
+      clipboardData += rowData.join(",") + "\n";
+
+      currentRow++;
+   }
+
+   tvDebug() << "Adding to clipboard:\n" << clipboardData;
+   QGuiApplication::clipboard()->setText(clipboardData);
+}
+
+void TrafficView::cellDoubleClicked(int row, int col)
+{
+   int frameRow = 0;
+   foreach(DataFrame* singleFrame, theFrames)
+   {
+      if (row == frameRow)
+      {
+         // This is the row we want!
+         QString cellData = singleFrame->getFieldValueString(col);
+         tvDebug() << "Cell Data: " << cellData;
+
+         QGuiApplication::clipboard()->setText(cellData);
+      }
+
+      frameRow++;
+   }
+
+   // If we get here, something weird happen.  The row they clicked on wasn't in our list
+   tvWarning() << "Double clicked on row " << row << ", but we only had " << frameRow << " rows internally";
 }
 
 void TrafficView::loadPlugins()
