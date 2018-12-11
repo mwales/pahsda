@@ -192,8 +192,6 @@ QString FrameDataField::getFieldValueRichString()
 
    for(int i = 0; i < theData.length(); i++)
    {
-      if (i != 0)
-         retVal += " ";
 
       int highlightVal = theBytesHighlighted.value(i, 0);
 
@@ -205,6 +203,9 @@ QString FrameDataField::getFieldValueRichString()
       }
       else
       {
+         if (i != 0)
+            retVal += " ";
+
          // Display the bytes as hexadecimal
          dataString = Helpers::qbyteToHexString(theData.mid(i, 1));
       }
@@ -324,7 +325,7 @@ QString FrameDataField::readableAsciiConversion(char data)
 
    default:
       char smallBuf[128];
-      sprintf(smallBuf, "\\x%02x", data);
+      sprintf(smallBuf, "\\x%02x", data & 0xff );
       retVal.append(smallBuf);
    }
 
