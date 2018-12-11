@@ -40,7 +40,7 @@ FrameDataField::FrameDataField(QObject* parent):
    QObject(parent),
    theLabel(nullptr),
    theHighlightInterval(0),
-   theForceColorFlag(false),
+   theOptionsFlag(0),
    theUpdateTimer(this)
 {
    theUpdateTimer.setSingleShot(true);
@@ -169,7 +169,21 @@ QByteArray FrameDataField::getFieldRawValue()
 
 QString FrameDataField::getFieldValueString()
 {
-   return Helpers::qbyteToHexString(theData);
+   if (theOptionsFlag & ASCII_DISPLAY)
+   {
+      QString retVal;
+
+      for(int i = 0; i < theData.length(); i++)
+      {
+         retVal.append(readableAsciiConversion(static_cast<char>(theData.at(i))));
+      }
+
+      return retVal;
+   }
+   else
+   {
+      return Helpers::qbyteToHexString(theData);
+   }
 }
 
 QString FrameDataField::getFieldValueRichString()
@@ -183,7 +197,19 @@ QString FrameDataField::getFieldValueRichString()
 
       int highlightVal = theBytesHighlighted.value(i, 0);
 
-      if (theForceColorFlag)
+      QString dataString;
+      if (theOptionsFlag & ASCII_DISPLAY)
+      {
+         // Display the ASCII characters
+         dataString.append(readableAsciiConversion(static_cast<char>(theData.at(i))));
+      }
+      else
+      {
+         // Display the bytes as hexadecimal
+         dataString = Helpers::qbyteToHexString(theData.mid(i, 1));
+      }
+
+      if (theOptionsFlag & SET_COLOR)
       {
           retVal += "<b class='forcemode'>";
       }
@@ -194,7 +220,7 @@ QString FrameDataField::getFieldValueRichString()
           retVal += "'>";
       }
 
-      retVal += Helpers::qbyteToHexString(theData.mid(i, 1));
+      retVal += dataString;
       retVal += "</b>";
    }
 
@@ -202,7 +228,7 @@ QString FrameDataField::getFieldValueRichString()
 }
 
 void FrameDataField::forceColor(QString colorString){
-    theForceColorFlag = true;
+    theOptionsFlag |= SET_COLOR;
     theForceColor = colorString;
 
     theStyleString = "<style>\n";
@@ -217,10 +243,18 @@ void FrameDataField::forceColor(QString colorString){
 
 void FrameDataField::unforceColor()
 {
-    theForceColorFlag = false;
+    theOptionsFlag &= ~ SET_COLOR;
 
     // Set the style string text back to normal
     setHighlightDuration(theHighlightInterval);
+}
+
+void FrameDataField::setAsciiFlag(bool displayAsAscii)
+{
+   if (displayAsAscii)
+      theOptionsFlag |= ASCII_DISPLAY;
+   else
+      theOptionsFlag &= ~ ASCII_DISPLAY;
 }
 
 void FrameDataField::timerTick()
@@ -257,6 +291,44 @@ void FrameDataField::timerTick()
       fdfDebug() << __PRETTY_FUNCTION__ << " - restarting timer";
       theUpdateTimer.start(FRAMER_TIMER_TICK_DURATION_MS);
    }
+}
+
+QString FrameDataField::readableAsciiConversion(char data)
+{
+   QString retVal;
+   if ( (data >= 20) && (data <= 0x7e))
+   {
+      if (data == 0x5c)
+         return retVal.append("\\");
+
+      return retVal.append(data);
+   }
+
+   switch(data)
+   {
+   case 0x09:
+      retVal.append("\t");
+      break;
+
+   case 0x0a:
+      retVal.append("\n");
+      break;
+
+   case 0x0c:
+      retVal.append("\f");
+      break;
+
+   case 0x0d:
+      retVal.append("\r");
+      break;
+
+   default:
+      char smallBuf[128];
+      sprintf(smallBuf, "\\x%02x", data);
+      retVal.append(smallBuf);
+   }
+
+   return retVal;
 }
 
 int FrameDataField::colorIndexLookup(int ticksLeft)

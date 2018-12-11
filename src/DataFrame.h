@@ -65,6 +65,8 @@ public:
 
    void colorField(int fieldIndex, QString color);
 
+   void setFieldDisplayAscii(int fieldIndex, bool displayAsAscii);
+
 protected:
 
    /// @todo Used shared pointers for the following field so we don't waste time / memory

@@ -45,11 +45,21 @@ public:
 
    void unforceColor();
 
+   void setAsciiFlag(bool displayAsAscii);
+
+   enum
+   {
+      SET_COLOR = 1,
+      ASCII_DISPLAY = 2
+   };
+
 protected slots:
 
    void timerTick();
 
 protected:
+
+   QString readableAsciiConversion(char data);
 
    int colorIndexLookup(int ticksLeft);
 
@@ -64,7 +74,7 @@ protected:
    QString theStyleString;
 
    // For when a field needs to be permenantly colored a color
-   bool theForceColorFlag;
+   uint8_t theOptionsFlag;
    QString theForceColor;
 
    static const QStringList BACKGROUND_SHADES;

@@ -360,3 +360,11 @@ void DataFrame::colorField(int fieldIndex, QString color)
        theValues.value(fieldIndex)->forceColor(color);
     }
 }
+
+void DataFrame::setFieldDisplayAscii(int fieldIndex, bool displayAsAscii)
+{
+   if (theValues.contains(fieldIndex))
+   {
+      theValues.value(fieldIndex)->setAsciiFlag(displayAsAscii);
+   }
+}
