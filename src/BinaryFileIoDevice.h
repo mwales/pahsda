@@ -21,6 +21,8 @@ class BinaryFileIoDevice : public QFile
 public:
    BinaryFileIoDevice(QString filename, QObject* parent = Q_NULLPTR);
 
+   ~BinaryFileIoDevice();
+
    virtual qint64 bytesAvailable() const;
 
    void setTimeToReadFile(int seconds);

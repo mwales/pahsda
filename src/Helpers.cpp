@@ -18,3 +18,16 @@ QString Helpers::qbyteToHexString(QByteArray data)
     return retVal;
 #endif
 }
+
+uint32_t Helpers::qbytearrayToValue(QByteArray data)
+{
+   uint32_t retVal = 0;
+   char* retValChar = (char*) &retVal;
+
+   for(int i = 0; (i < 4) && (i < data.length()); i++)
+   {
+      retValChar[i] = data.data()[i];
+   }
+
+   return retVal;
+}

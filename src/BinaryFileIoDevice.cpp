@@ -34,6 +34,11 @@ BinaryFileIoDevice::BinaryFileIoDevice(QString filename, QObject* parent):
    open(QIODevice::ReadOnly);
 }
 
+BinaryFileIoDevice::~BinaryFileIoDevice()
+{
+   bfDebug() << "FinaryFileIoDevice destructor called";
+}
+
 qint64 BinaryFileIoDevice::bytesAvailable() const
 {
    int readTimeSoFar = theTimeToReadFileMs - theFinishedTimer.remainingTime();

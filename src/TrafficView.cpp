@@ -183,6 +183,16 @@ void TrafficView::openDataFile()
       return;
    }
 
+   if (theInterface != nullptr)
+   {
+      tvDebug() << "Closing the old interface before propmting user to choose new one";
+      theInterface->close();
+
+      theInterface->deleteLater();
+
+      theInterface = nullptr;
+   }
+
    QString binaryFilePath;
    int numSeconds;
 
@@ -292,6 +302,8 @@ void TrafficView::clearFrames()
    {
       delete df;
    }
+
+   theFrames.clear();
 }
 
 void TrafficView::ioReadReady()
@@ -301,6 +313,12 @@ void TrafficView::ioReadReady()
    if (theCurrentProtocol == nullptr)
    {
       tvWarning() << "Received data, but no protocol configured to receive it";
+      return;
+   }
+
+   if (theInterface == nullptr)
+   {
+      tvWarning() << "Received ioReadReady received a signal, but theInterface is null";
       return;
    }
 
@@ -473,6 +491,12 @@ void TrafficView::injectorDataReady()
    {
       tvDebug() << "Failed to inject data.  Received " << injectionData.length()
                << " bytes to inject, wrote " << bytesWritten << " bytes";
+   }
+
+   if(theCurrentProtocol != nullptr)
+   {
+      // Add the injected data to the frame view
+      theCurrentProtocol->pushMsgBytes(injectionData);
    }
 
 }

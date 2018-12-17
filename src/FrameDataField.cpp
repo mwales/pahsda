@@ -9,6 +9,9 @@
 // Uncomment to enable debugging of this class
 // #define FRAME_DATA_FIELD_DEBUG
 
+// Don't highlight changed bytes of ASCII fields
+#define FAST_STRING_UPDATES
+
 #ifdef FRAME_DATA_FIELD_DEBUG
    #define fdfDebug qDebug
    #define fdfWarning qWarning
@@ -88,6 +91,17 @@ void FrameDataField::updateValue(QByteArray data)
 
    fdfDebug() << "Highlighting on.  OLD=" << theData.toHex() << " NEW=" << data.toHex();
 
+#ifdef FAST_STRING_UPDATES
+   if (theOptionsFlag & ASCII_DISPLAY)
+   {
+      if (theData == data)
+         return;
+
+      theData = data;
+      theLabel->setText(getFieldValueRichString());
+      return;
+   }
+#endif
 
    // Incase the field length has changed, only use the shortest field length
    int numBytes = theData.length();
