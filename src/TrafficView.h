@@ -37,6 +37,8 @@ private slots:
 
    void openSerialPort();
 
+   void openTcpClient();
+
    void openDataFile();
 
    void closeInterface();

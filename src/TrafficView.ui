@@ -78,6 +78,7 @@
     </property>
     <addaction name="actionOpen_Serial_Port"/>
     <addaction name="actionOpen_Data_File"/>
+    <addaction name="actionOpen_TCP_Client"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -128,6 +129,11 @@
   <action name="actionCopy_Cell">
    <property name="text">
     <string>Copy Cell</string>
+   </property>
+  </action>
+  <action name="actionOpen_TCP_Client">
+   <property name="text">
+    <string>Open TCP Client...</string>
    </property>
   </action>
  </widget>

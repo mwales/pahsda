@@ -62,6 +62,8 @@ TrafficView::TrafficView(QWidget *parent) :
            this, &TrafficView::openSerialPort);
    connect(ui->actionOpen_Data_File, &QAction::triggered,
            this, &TrafficView::openDataFile);
+   connect(ui->actionOpen_TCP_Client, &QAction::triggered,
+           this, &TrafficView::openTcpClient);
    connect(ui->actionCopy_Cell, &QAction::triggered,
            this, &TrafficView::copyCells);
    connect(ui->theFrameView, &QTableWidget::cellDoubleClicked,
@@ -171,6 +173,82 @@ void TrafficView::openSerialPort()
    {
       theCurrentProtocol->pushMsgBytes(theInterface->readAll());
    }
+}
+
+void TrafficView::openTcpClient()
+{
+   QString errMsgTitle;
+   QString errMsgText;
+   QString hostname;
+   int portNumber;
+   bool success;
+   QTcpSocket* tcpStream;
+
+   if (theInterface != nullptr)
+   {
+      tvDebug() << "Closing the old interface before propmting user to choose new one";
+      theInterface->close();
+
+      theInterface->deleteLater();
+
+      theInterface = nullptr;
+   }
+
+   QInputDialog dlg;
+   dlg.setLabelText("Enter IP address or hostname : port");
+   dlg.setInputMode(QInputDialog::TextInput);
+   dlg.setOkButtonText("Connect");
+   dlg.setTextValue("127.0.0.1:23");
+   dlg.show();
+   if (dlg.exec() != QDialog::Accepted)
+   {
+      tvDebug() << "User canceled TCP Client Connection";
+      return;
+   }
+
+   QString serverString = dlg.textValue();
+   int colonPos = serverString.indexOf(':');
+   if (colonPos == -1)
+   {
+      errMsgTitle = "Invalid Server Address";
+      errMsgText = "You must specify server address and port to connect to!\nservername:portNum";
+      goto displayErrMsgBox;
+   }
+
+   hostname = serverString.left(colonPos);
+   portNumber = serverString.mid(colonPos +1).toInt(&success);
+   if (!success || (portNumber < 0) || (portNumber > 65535) )
+   {
+      errMsgTitle = "Invalid Server Port";
+      errMsgText = "You must specify server address and VALID PORT to connect to!\nservername:portNum";
+      goto displayErrMsgBox;
+   }
+
+   if (theCurrentProtocol == nullptr)
+   {
+      QMessageBox::warning(this, "No protocol selected",
+                           "You must select a protocol first before opening up a data connection");
+      return;
+   }
+
+   tcpStream = new QTcpSocket(this);
+   theInterface = tcpStream;
+
+   clearFrames();
+
+   tvDebug() << "Lets connect things up to our new io device!";
+
+   // Connect data received to the protocol's pushMsgBytes method
+   theInterface->setParent(this);
+   connect(tcpStream, &QIODevice::readyRead,
+           this, &TrafficView::ioReadReady);
+
+   tcpStream->connectToHost(hostname, static_cast<uint16_t>(portNumber), QIODevice::ReadWrite);
+
+   return;
+
+   displayErrMsgBox:
+   QMessageBox::critical(this, errMsgTitle, errMsgTitle);
 }
 
 void TrafficView::openDataFile()
