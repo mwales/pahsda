@@ -5,7 +5,21 @@ Pronouned like pasta, because I like food.
 
 # Dependencies
 
-Requires Qt5 with QtSerialPort package
+Requires Qt5 with QtSerialPort package.  If you install Qt manually using the
+downloadable installer from Digia, it comes with the serial port library
+already installed.
+
+You can then uncomment the line in build.sh at the beginning and specify the
+path to the qmake binary that was installed with the manually installed
+version.
+
+```
+QMAKE_PATH=/opt/Qt5.12.2/5.12.2/gcc_64/bin/
+```
+
+If you are on an Ubuntu system, add the following package to install Qt with
+serial port support. After installing this package, you should be able to
+build pahsda with the Ubuntu packaged version of qt5-dev.
 
 * libqt5serialport5-dev
 

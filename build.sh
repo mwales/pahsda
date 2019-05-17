@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# Uncomment to use the Qt version I installed manually
+# QMAKE_PATH=/opt/Qt5.12.2/5.12.2/gcc_64/bin/
+QMAKE_PATH=
+
 if [ -d build ];
 then
 	echo "Cleaning the build directory"
@@ -17,7 +21,7 @@ fi
 
 # Go into the build directory and build the main application
 cd build
-qmake ../src/pahsda.pro
+${QMAKE_PATH}qmake ../src/pahsda.pro
 
 if [ $? -ne 0 ];
 then
