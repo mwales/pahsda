@@ -1,3 +1,6 @@
 [submodule "src/plugins/pahsda-duml_lite"]
 	path = src/plugins/pahsda-duml_lite
 	url = https://github.com/mwales/pahsda-duml_lite
+[submodule "src/plugins/pahsda-candumpy"]
+	path = src/plugins/pahsda-candumpy
+	url = https://github.com/mwales/pahsda-candumpy
