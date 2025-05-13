@@ -3,6 +3,7 @@
 
 #include <QDialog>
 #include <QSerialPortInfo>
+#include <QSerialPort>
 #include <QList>
 #include <QIODevice>
 
@@ -27,6 +28,16 @@ public:
    ~PortChooser();
 
    QIODevice* getIoDevice();
+
+   enum QSerialPort::BaudRate getBaudRate();
+
+   enum QSerialPort::DataBits getDataBits();
+
+   enum QSerialPort::FlowControl getFlowControl();
+
+   enum QSerialPort::Parity getParity();
+
+   enum QSerialPort::StopBits getStopBits();
 
 private slots:
 

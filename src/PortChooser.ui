@@ -6,67 +6,246 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>300</height>
+    <width>322</width>
+    <height>302</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Serial Port Selection</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout_2">
+  <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <layout class="QVBoxLayout" name="verticalLayout">
-     <item>
-      <widget class="QComboBox" name="thePortName">
-       <property name="editable">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLabel" name="theMfgLabel">
+    <widget class="QComboBox" name="thePortName">
+     <property name="editable">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="theMfgLabel">
+     <property name="text">
+      <string>Manufacturer:</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="theLocation">
+     <property name="text">
+      <string>Location:</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <layout class="QFormLayout" name="formLayout">
+     <item row="0" column="0">
+      <widget class="QLabel" name="theBaudRateLabel">
        <property name="text">
-        <string>Manufacturer:</string>
+        <string>Baud Rate:</string>
        </property>
       </widget>
      </item>
-     <item>
-      <widget class="QLabel" name="theLocation">
+     <item row="0" column="1">
+      <widget class="QComboBox" name="theBaudRateCb">
+       <property name="currentIndex">
+        <number>7</number>
+       </property>
+       <property name="maxVisibleItems">
+        <number>7</number>
+       </property>
+       <item>
+        <property name="text">
+         <string>1200</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>2400</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>4800</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>9600</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>19200</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>38400</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>57600</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>115200</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QLabel" name="theDataBitsLabel">
        <property name="text">
-        <string>Location:</string>
+        <string>Data Bits:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QComboBox" name="theDataBitsCb">
+       <property name="currentIndex">
+        <number>3</number>
+       </property>
+       <item>
+        <property name="text">
+         <string>5 Bits</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>6 Bits</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>7 Bits</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>8 Bits</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item row="2" column="0">
+      <widget class="QLabel" name="theFlowControlLabel">
+       <property name="text">
+        <string>Flow Control:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <widget class="QComboBox" name="theFlowControlCb">
+       <item>
+        <property name="text">
+         <string>No Flow Control</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Hardware Control</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Software Control</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item row="3" column="0">
+      <widget class="QLabel" name="theParityLabel">
+       <property name="text">
+        <string>Parity:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="1">
+      <widget class="QComboBox" name="theParityCb">
+       <item>
+        <property name="text">
+         <string>No Parity</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Even Parity</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Odd Parity</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Space Parity</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Mark Parity</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item row="4" column="0">
+      <widget class="QLabel" name="theStopBitsLabel">
+       <property name="text">
+        <string>Stop Bits:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="1">
+      <widget class="QComboBox" name="theStopBitsCb">
+       <item>
+        <property name="text">
+         <string>1 stop bit</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>1.5 stop bits</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>2 stop bits</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QPushButton" name="theRefreshButton">
+       <property name="text">
+        <string>Refresh</string>
        </property>
       </widget>
      </item>
      <item>
-      <layout class="QHBoxLayout" name="horizontalLayout">
-       <item>
-        <widget class="QPushButton" name="theRefreshButton">
-         <property name="text">
-          <string>Refresh</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <spacer name="horizontalSpacer">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>40</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item>
-        <widget class="QPushButton" name="theOpenButton">
-         <property name="text">
-          <string>Open</string>
-         </property>
-        </widget>
-       </item>
-      </layout>
+      <spacer name="horizontalSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="theOpenButton">
+       <property name="text">
+        <string>Open</string>
+       </property>
+      </widget>
      </item>
     </layout>
    </item>
